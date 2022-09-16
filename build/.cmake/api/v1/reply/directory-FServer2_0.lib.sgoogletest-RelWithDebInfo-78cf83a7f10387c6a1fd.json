@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "FServer2_0/lib/sgoogletest",
+		"source" : "FServer2_0/libs/googletest"
+	}
+}

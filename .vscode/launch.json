@@ -7,16 +7,23 @@
             "name": "CMAKE + REBUILD Debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/main",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
             "preLaunchTask": "build_debug",          
-           // "cmake.debugConfig": {
+           
+            "windows": {
+                "program": "${workspaceFolder}/build/Debug/main.exe",
+                "miDebuggerPath": "C:\\MinGW64\\bin\\gdb.exe",
+            },
+            "linux": {
+                "program": "${workspaceFolder}/build/main",
 
-          //  },         
+            },
+
+
             "MIMode": "gdb",
             "setupCommands": [
                 {
@@ -30,13 +37,22 @@
             "name": "CMAKE + REBUILD Release",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/main",
+
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
-            "preLaunchTask": "build_release",
+
+            "windows": {
+                "program": "${workspaceFolder}/build/Release/main.exe",
+                "miDebuggerPath": "C:\\MinGW64\\bin\\gdb.exe",
+            },
+            "linux": {
+                "program": "${workspaceFolder}/build/main",
+
+            },
+
             "MIMode": "gdb",
             "setupCommands": [
                 {
@@ -50,15 +66,24 @@
             "name": "CMAKE Debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/main",
+
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
             "preLaunchTask": "build_debug_cmake",          
-           // "cmake.debugConfig": {
-          //  },         
+     
+
+            "windows": {
+                "program": "${workspaceFolder}/build/Debug/main.exe",
+                "miDebuggerPath": "C:\\MinGW64\\bin\\gdb.exe",
+            },
+            "linux": {
+                "program": "${workspaceFolder}/build/main",
+
+            },
+
             "MIMode": "gdb",
             "setupCommands": [
                 {
@@ -72,7 +97,7 @@
             "name": "CMAKE Release",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/main",
+
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -80,6 +105,16 @@
             "externalConsole": false,
             "preLaunchTask": "build_release_cmake",
             "MIMode": "gdb",
+
+            "windows": {
+                "program": "${workspaceFolder}/build/Release/main.exe",
+                "miDebuggerPath": "C:\\MinGW64\\bin\\gdb.exe",
+            },
+            "linux": {
+                "program": "${workspaceFolder}/build/main",
+
+            },
+
             "setupCommands": [
                 {
                     "description": "Включить автоматическое форматирование для gdb",
@@ -92,10 +127,19 @@
             "type": "cppdbg",
             "request": "launch",
             "name": "Server-test",
-            "program": "${workspaceFolder}/build/FServer2_0/tests_server",
             "cwd": "${workspaceFolder}",
             "externalConsole": false,
             "MIMode": "gdb",
+
+            "windows": {
+                "program": "${workspaceFolder}/build/FServer2_0/Debug/tests_server.exe",
+                "miDebuggerPath": "C:\\MinGW64\\bin\\gdb.exe",
+            },
+            "linux": {
+                "program": "${workspaceFolder}/build/FServer2_0/tests_server",
+
+            },
+
             "setupCommands": [
                 {
                     "description": "Включить автоматическое форматирование для gdb",
@@ -108,10 +152,17 @@
             "type": "cppdbg",
             "request": "launch",
             "name": "Client-test",
-            "program": "${workspaceFolder}/build/FServer2_0/tests_client",
             "cwd": "${workspaceFolder}",
             "externalConsole": false,
 
+            "windows": {
+                "program": "${workspaceFolder}/build/FServer2_0/Debug/tests_client.exe",
+                "miDebuggerPath": "C:\\MinGW64\\bin\\gdb.exe",
+            },
+            "linux": {
+                "program": "${workspaceFolder}/build/FServer2_0/tests_client",
+
+            },
             "MIMode": "gdb",
             "setupCommands": [
                 {

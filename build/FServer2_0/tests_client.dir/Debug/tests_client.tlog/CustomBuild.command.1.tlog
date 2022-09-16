@@ -1,0 +1,10 @@
+^C:\USERS\TEMAS\DOCUMENTS\REPOS_VS_CODE\FSERVER2.0\FSERVER2_0\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/Temas/Documents/repos_vs_code/FServer2.0 -BC:/Users/Temas/Documents/repos_vs_code/FServer2.0/build --check-stamp-file C:/Users/Temas/Documents/repos_vs_code/FServer2.0/build/FServer2_0/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

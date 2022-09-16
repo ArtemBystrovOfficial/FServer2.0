@@ -56,3 +56,15 @@ make: *** [Makefile:121: cmTC_aa5c1/fast] Error 2
 
 
 
+Determining if the include file pthread.h exists failed with the following output:
+Change Dir: C:/Users/Temas/Documents/repos_vs_code/FServer2.0/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/amd64/MSBuild.exe cmTC_d25de.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:m && MSBuild version 17.3.1+2badb37d1 for .NET Framework
+  Оптимизирующий компилятор Microsoft (R) C/C++ версии 19.33.31629 для x64
+  CheckIncludeFile.c
+  (C) Корпорация Майкрософт (Microsoft Corporation).  Все права защищены.
+  cl /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\"Debug\"" /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_d25de.dir\Debug\\" /Fd"cmTC_d25de.dir\Debug\vc143.pdb" /external:W3 /Gd /TC /errorReport:queue C:\Users\Temas\Documents\repos_vs_code\FServer2.0\build\CMakeFiles\CMakeTmp\CheckIncludeFile.c
+C:\Users\Temas\Documents\repos_vs_code\FServer2.0\build\CMakeFiles\CMakeTmp\CheckIncludeFile.c(1,10): fatal  error C1083: Не удается открыть файл включение: pthread.h: No such file or directory, [C:\Users\Temas\Documents\repos_vs_code\FServer2.0\build\CMakeFiles\CMakeTmp\cmTC_d25de.vcxproj]
+
+
+

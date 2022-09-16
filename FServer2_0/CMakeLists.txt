@@ -33,11 +33,7 @@ if (MSVC)
     # @see https://github.com/google/googletest/blob/master/googletest/README.md
     # Visual Studio Dynamic vs Static Runtimes
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-
-    target_compile_options(
-        demo PRIVATE
-        /W4
-    )
+    
     target_compile_options(
         tests_client PRIVATE
         /W4
