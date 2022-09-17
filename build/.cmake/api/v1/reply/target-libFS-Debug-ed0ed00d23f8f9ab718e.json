@@ -1,0 +1,126 @@
+{
+	"archive" : {},
+	"artifacts" : 
+	[
+		{
+			"path" : "FServer2_0/source/liblibFS.a"
+		}
+	],
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_library",
+			"include_directories"
+		],
+		"files" : 
+		[
+			"FServer2_0/source/CMakeLists.txt",
+			"CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 1,
+				"parent" : 0
+			},
+			{
+				"file" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 3,
+				"parent" : 2
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 4,
+				"parent" : 2
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 5,
+				"parent" : 2
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "-g  "
+				},
+				{
+					"fragment" : "-std=gnu++17"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 3,
+					"path" : "/home/artem/Documents/ASIO_PRACTICE/FServer2_0/source/Client"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "/home/artem/Documents/ASIO_PRACTICE/FServer2_0/source/Server"
+				},
+				{
+					"backtrace" : 5,
+					"path" : "/home/artem/Documents/ASIO_PRACTICE/FServer2_0/libs/asio-1.24.0/include"
+				}
+			],
+			"language" : "CXX",
+			"sourceIndexes" : 
+			[
+				0,
+				1
+			]
+		}
+	],
+	"id" : "libFS::@86a7099b4ca107078f44",
+	"name" : "libFS",
+	"nameOnDisk" : "liblibFS.a",
+	"paths" : 
+	{
+		"build" : "FServer2_0/source",
+		"source" : "FServer2_0/source"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0,
+				1
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "FServer2_0/source/Client/Client.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "FServer2_0/source/Server/Server.cpp",
+			"sourceGroupIndex" : 0
+		}
+	],
+	"type" : "STATIC_LIBRARY"
+}

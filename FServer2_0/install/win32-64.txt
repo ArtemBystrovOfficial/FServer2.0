@@ -1,0 +1,1 @@
+Write your version boost in ./CMakeLists.txt <replace BOOST_VERSION> by hands.
