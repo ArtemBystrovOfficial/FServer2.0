@@ -10392,6 +10392,12 @@ asio/detail/pop_options.hpp
 asio/impl/write_at.hpp
 ../FServer2_0/libs/asio-1.24.0/include/asio/asio/impl/write_at.hpp
 
+/home/artem/Documents/ASIO_PRACTICE/FServer2_0/source/Client/Client.cpp
+Client.hpp
+/home/artem/Documents/ASIO_PRACTICE/FServer2_0/source/Client/Client.hpp
+
+/home/artem/Documents/ASIO_PRACTICE/FServer2_0/source/Client/Client.hpp
+
 /home/artem/Documents/ASIO_PRACTICE/FServer2_0/source/Server/Server.cpp
 Server.hpp
 /home/artem/Documents/ASIO_PRACTICE/FServer2_0/source/Server/Server.hpp

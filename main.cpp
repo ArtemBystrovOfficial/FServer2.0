@@ -7,6 +7,6 @@
 int main(int argc ,char ** argv)
 {
     myfoo();
-    std::cout << "Hello, world1"<<std::endl;
+    std::cout << "Hello, world"<<std::endl;
     return 0;
 }
