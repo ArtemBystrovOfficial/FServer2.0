@@ -1,1 +1,0 @@
-/usr/bin/g++  -g  -rdynamic CMakeFiles/tests_server.dir/testing/tests_server.cpp.o CMakeFiles/tests_server.dir/source/Server/Server.cpp.o  -o tests_server  ../lib/libgtestd.a ../lib/libgtest_maind.a ../lib/libgmockd.a ../lib/libgmock_maind.a ../lib/libgmockd.a ../lib/libgtestd.a -lpthread 

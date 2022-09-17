@@ -1,2 +1,0 @@
-/usr/bin/ar qc liblibFS.a  CMakeFiles/libFS.dir/Client/Client.cpp.o CMakeFiles/libFS.dir/Server/Server.cpp.o
-/usr/bin/ranlib liblibFS.a
