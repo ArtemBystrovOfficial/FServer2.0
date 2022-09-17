@@ -8,6 +8,17 @@
 #define ASIO_HAS_STD_SHARED_PTR
 #define ASIO_HAS_STD_TYPE_TRAITS
 */
+
+
 using namespace asio;
 
+typedef std::shared_ptr<ip::tcp::socket> socket_ptr;
+
+void client_session(socket_ptr sock);
+
+namespace server
+{
+
 void myfoo();
+
+}

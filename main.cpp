@@ -6,7 +6,6 @@
 
 int main(int argc ,char ** argv)
 {
-    myfoo();
-    std::cout << "Hello, world"<<std::endl;
+    client::myfoo();
     return 0;
 }
