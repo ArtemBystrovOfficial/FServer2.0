@@ -1,3 +1,8 @@
-add_library(libFS STATIC Client/Client.cpp Server/Server.cpp)
+add_library(libFS STATIC Server/FServer.cpp
+                         Server/Servise/basic.cpp 
+                         Server/IO/proxy.cpp
+                         Server/IO/io.cpp
+                         Server/IO/buffer.cpp
+)
 
 

@@ -1,11 +1,13 @@
 #include "Client.hpp"
-#include "Server.hpp"
+#include "FServer.hpp"
 #include <iostream>
+#include <thread>
+#include <Windows.h>
+
 
 
 
 int main(int argc ,char ** argv)
 {
-    client::myfoo();
     return 0;
 }

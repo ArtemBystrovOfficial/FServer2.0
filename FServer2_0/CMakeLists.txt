@@ -14,7 +14,12 @@ add_subdirectory(
 
 # Test target
 add_executable (tests_client "testing/tests_client.cpp" "source/Client/Client.cpp")
-add_executable (tests_server "testing/tests_server.cpp" "source/Server/Server.cpp")
+add_executable (tests_server "testing/tests_server.cpp")
+
+target_link_libraries(
+        tests_server
+        PRIVATE libFS
+)
 
 # Link test target against gtest libraries
 target_link_libraries(
@@ -42,6 +47,7 @@ if (MSVC)
         tests_server PRIVATE
         /W4
     )
+    message("yes")
 else ()
     target_compile_options(
         tests_client PRIVATE
