@@ -6,9 +6,22 @@ struct Pocket_Sys
 
 	// Servise varibles
 	int fid; // fid of client
+
+	// not fot use at down
+
 	uint64_t _pocket_id; // number of client pocket for
 						 // find loses pockets end wait then
 	int extra_test = 777;
+
+	bool is_command = false;
+
+	enum class commands
+	{
+		CloseMe,
+		RefreshMe
+	};
+
+	commands command;
 
 	template <typename _Pocket>
 	friend bool operator<(const Pocket_Sys& pock1, const Pocket_Sys& pock2);

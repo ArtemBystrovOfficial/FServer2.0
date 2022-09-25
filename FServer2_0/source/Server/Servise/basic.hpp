@@ -37,8 +37,9 @@ struct User_Session
 	User_Session(
 		bool_atc_ptr bool_ptr,
 		socket_ptr sock_ptr,
-		bufferIO_ptr <_Pocket> buffer_io
-	) : reciver(sock_ptr,bool_ptr,buffer_io),
+		bufferIO_ptr <_Pocket> buffer_io,
+		int fid
+	) : reciver(sock_ptr,bool_ptr,buffer_io,fid),
 		socket(sock_ptr),
 		socket_closed(bool_ptr)
 	{}
@@ -57,13 +58,14 @@ public:
 	BasicFServer() = delete;
 	BasicFServer(bufferIO_ptr<_Pocket> ptr
 		, service_ptr service
+		, cv_ptr wait_sender
 		, const std::string& ip
 		, int port)
 		: ep(ip::address::from_string(ip), port)
 		, io_s(service)
 		, buffer_io(ptr)
 	{
-		sender.start(buffer_io,cv_ptr(new std::condition_variable));
+		sender.start(buffer_io,wait_sender);
 	}
 
 	// Listening new connections
@@ -74,16 +76,10 @@ public:
 	int Disconnect(int fid);
 
 	// Send Pocket_Sys to all with refresh
-	void Refresh();
-
-	// Send Pocket_Sys to all with refresh
 	std::vector <int> GetOnlineFidList();
 
 	// Send Pocket_Sys to all with refresh
 	bool IsFidOnline(int fid);
-
-	// Servise commands from clients
-	void PortNewSystemPocket(Pocket_Sys<_Pocket> what);
 
 	// Listening or not
 	bool isWorking();
@@ -95,6 +91,11 @@ public:
 	void _Off();
 
 	~BasicFServer();
+
+	int get_current_fid()
+	{
+		return current_free_fid;
+	}
 
 	// don't use socket->close() use this function for safe
 	static int _close_socket(socket_ptr, bool_atc_ptr);
@@ -181,7 +182,7 @@ void BasicFServer<_Pocket>::_listenner()
 
 		users.emplace(std::piecewise_construct,
 			std::forward_as_tuple(current_free_fid),
-			std::forward_as_tuple(check_connect_closed, sock, buffer_io));
+			std::forward_as_tuple(check_connect_closed, sock, buffer_io,current_free_fid));
 
 		sender._addNewFidSocket(current_free_fid, sock);
 
@@ -235,12 +236,6 @@ inline int BasicFServer<_Pocket>::Disconnect(int fid)
 }
 
 template<class _Pocket>
-inline void BasicFServer<_Pocket>::Refresh()
-{
-	// SENDERFILTER WAIT
-}
-
-template<class _Pocket>
 inline std::vector<int> BasicFServer<_Pocket>::GetOnlineFidList()
 {
 	// optimazation return rule of 3
@@ -275,12 +270,6 @@ inline bool BasicFServer<_Pocket>::IsFidOnline(int fid)
 
 	return is;
 
-}
-
-template<class _Pocket>
-inline void BasicFServer<_Pocket>::PortNewSystemPocket(Pocket_Sys<_Pocket> what)
-{
-	// SENDERFILTER WAIT
 }
 
 template<class _Pocket>
@@ -367,11 +356,14 @@ inline BasicFServer<_Pocket>::~BasicFServer()
 
 	_block_map_users.unlock();
 
-	is_working.store(false);
+	if (is_working.load())
+	{
+		is_working.store(false);
 
-	acceptor->close();
+		acceptor->close();
 
-	_listen_run.join();
+		_listen_run.join();
+	}
 
 }
 

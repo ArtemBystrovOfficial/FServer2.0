@@ -18,15 +18,15 @@ public:
 	BufferIO() = delete;
 
 	//must use this
-	BufferIO(cv_ptr cv_sender)
+	BufferIO(cv_ptr cv_sender,cv_ptr cv_recvfilter)
 	{
-		waitget = cv_sender;
+		waitgetOut = cv_sender;
+		waitgetIn = cv_recvfilter;
 	}
 
 	//typedef _Pocket value_type;
 
 	// return -1 Error and 0 when buff empty
-
 	int getFIn(Pocket_Sys<_Pocket>&);
 
 	// return -1 Error
@@ -44,6 +44,11 @@ public:
 		return _out.empty();
 	}
 
+	bool inIsEmpty()
+	{
+		return _in.empty();
+	}
+
 private:
 
 	std::deque < Pocket_Sys<_Pocket> > _in , _out;
@@ -51,7 +56,7 @@ private:
 	std::mutex _lockIn , _lockOut;
 
 	//for sender connect
-	cv_ptr waitget;
+	cv_ptr waitgetOut, waitgetIn;
 
 };
 
@@ -82,6 +87,8 @@ inline int BufferIO<_Pocket>::addIn(const Pocket_Sys<_Pocket>& pocket)
 	_lockIn.lock();
 
 	_in.push_back(pocket);
+
+	waitgetIn->notify_one();
 
 	_lockIn.unlock();
 
@@ -116,7 +123,7 @@ inline int BufferIO<_Pocket>::addOut(const Pocket_Sys<_Pocket>& pocket)
 
 	_out.push_back(pocket);
 
-	waitget->notify_one();
+	waitgetOut->notify_one();
 
 	_lockIn.unlock();
 

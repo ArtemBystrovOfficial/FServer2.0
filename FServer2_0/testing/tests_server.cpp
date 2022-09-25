@@ -1,7 +1,8 @@
-
 #include "../source/Server/IO/buffer.hpp"
 #include "../source/Server/IO/io.hpp"
 #include "../source/Server/Servise/basic.hpp"
+#include "../source/Server/Servise/filter_io.hpp"
+#include "../source/Server/Fserver.hpp"
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
@@ -9,11 +10,14 @@
 #include <atomic>
 #include <Windows.h>
 
-
 //#define ENABLE_BUFFERIO
 //#define ENABLE_I
 //#define ENABLE_BASIC
 //#define ENABLE_O
+//#define ENABLE_FILTER_I
+//#define ENABLE_FILTER_O
+//#define ENABLE_LEFT_E2E
+
 
 //#define TEST_REAL_SITUATUON_MODE
 
@@ -38,11 +42,13 @@ std::ostream& operator<< (std::ostream& os, const MyPocket& pock)
 //Common tests without multithreating
 TEST(BufferIO, Out)
 {
+
     //A
 
-    cv_ptr _buffer_check(new std::condition_variable);
+    cv_ptr _buffer_checkO(new std::condition_variable);
+    cv_ptr _buffer_checkI(new std::condition_variable);
 
-    BufferIO < MyPocket > buffer_io(_buffer_check);
+    BufferIO < MyPocket > buffer_io(_buffer_checkO, _buffer_checkI);
 
     Pocket_Sys <MyPocket> pocket;
 
@@ -68,9 +74,10 @@ TEST(BufferIO, In)
 {
     //A
 
-    cv_ptr _buffer_check(new std::condition_variable);
+    cv_ptr _buffer_checkO(new std::condition_variable);
+    cv_ptr _buffer_checkI(new std::condition_variable);
 
-    BufferIO < MyPocket > buffer_io(_buffer_check);
+    BufferIO < MyPocket > buffer_io(_buffer_checkO, _buffer_checkI);
 
     Pocket_Sys <MyPocket> pocket;
 
@@ -99,9 +106,10 @@ TEST(BufferIO, Threating)
  while (t--)
  {
      //A
-     cv_ptr _buffer_check(new std::condition_variable);
+     cv_ptr _buffer_checkO(new std::condition_variable);
+     cv_ptr _buffer_checkI(new std::condition_variable);
 
-     BufferIO < MyPocket > buffer_io(_buffer_check);
+     BufferIO < MyPocket > buffer_io(_buffer_checkO, _buffer_checkI);
 
      int Count_of_threads = 10;
 
@@ -182,11 +190,12 @@ TEST(Reciver, SendPockets)
         std::shared_ptr<std::atomic <bool>> socket_closed(new std::atomic <bool>{ false });
         socket_closed->store(false);
 
-        cv_ptr _buffer_check(new std::condition_variable);
+        cv_ptr _buffer_checkO(new std::condition_variable);
+        cv_ptr _buffer_checkI(new std::condition_variable);
 
-        bufferIO_ptr<MyPocket> ptr(new BufferIO<MyPocket>(_buffer_check));
+        bufferIO_ptr<MyPocket> ptr(new BufferIO<MyPocket>(_buffer_checkO, _buffer_checkI ));
 
-        Reciver<MyPocket> recv(sockserv, socket_closed, ptr);
+        Reciver<MyPocket> recv(sockserv, socket_closed, ptr,1);
 
         Pocket_Sys <MyPocket>  pocket{ MyPocket{ 5 }, 1, 3 };
 
@@ -241,11 +250,12 @@ TEST(Reciver, extBeforeSockClose)
         std::shared_ptr<std::atomic <bool>> socket_closed(new std::atomic <bool>{ false });
         socket_closed->store(false);
 
-        cv_ptr _buffer_check(new std::condition_variable);
+        cv_ptr _buffer_checkO(new std::condition_variable);
+        cv_ptr _buffer_checkI(new std::condition_variable);
 
-        bufferIO_ptr<MyPocket> ptr(new BufferIO<MyPocket>(_buffer_check));
+        bufferIO_ptr<MyPocket> ptr(new BufferIO<MyPocket>(_buffer_checkO, _buffer_checkI));
 
-        Reciver<MyPocket> recv(sockserv, socket_closed, ptr);
+        Reciver<MyPocket> recv(sockserv, socket_closed, ptr,1);
 
         thr.join();
 
@@ -287,11 +297,12 @@ TEST(Reciver, extAfterSockClose)
     std::shared_ptr<std::atomic <bool>> socket_closed(new std::atomic <bool>{ false });
     socket_closed->store(false);
 
-    cv_ptr _buffer_check(new std::condition_variable);
+    cv_ptr _buffer_checkO(new std::condition_variable);
+    cv_ptr _buffer_checkI(new std::condition_variable);
 
-    bufferIO_ptr<MyPocket> ptr(new BufferIO<MyPocket>(_buffer_check));
+    bufferIO_ptr<MyPocket> ptr(new BufferIO<MyPocket>(_buffer_checkO, _buffer_checkI));
 
-    Reciver<MyPocket> recv(sockserv, socket_closed, ptr);
+    Reciver<MyPocket> recv(sockserv, socket_closed, ptr, 1);
 
     thr.join();
 
@@ -329,11 +340,12 @@ TEST(Reciver, checkSystemSortPockets1)
     std::shared_ptr<std::atomic <bool>> socket_closed(new std::atomic <bool>{ false });
     socket_closed->store(false);
 
-    cv_ptr _buffer_check(new std::condition_variable);
+    cv_ptr _buffer_checkO(new std::condition_variable);
+    cv_ptr _buffer_checkI(new std::condition_variable);
 
-    bufferIO_ptr<MyPocket> ptr(new BufferIO<MyPocket>(_buffer_check));
+    bufferIO_ptr<MyPocket> ptr(new BufferIO<MyPocket>(_buffer_checkO, _buffer_checkI));
 
-    Reciver<MyPocket> recv(sockserv, socket_closed, ptr);
+    Reciver<MyPocket> recv(sockserv, socket_closed, ptr, 1);
 
     Pocket_Sys <MyPocket>  pocket{ MyPocket{ 0 }, 11, 2 };
 
@@ -382,11 +394,12 @@ TEST(Reciver, checkSystemSortPockets2)
     std::shared_ptr<std::atomic <bool>> socket_closed(new std::atomic <bool>{ false });
     socket_closed->store(false);
 
-    cv_ptr _buffer_check(new std::condition_variable);
+    cv_ptr _buffer_checkO(new std::condition_variable);
+    cv_ptr _buffer_checkI(new std::condition_variable);
 
-    bufferIO_ptr<MyPocket> ptr(new BufferIO<MyPocket>(_buffer_check));
+    bufferIO_ptr<MyPocket> ptr(new BufferIO<MyPocket>(_buffer_checkO, _buffer_checkI));
 
-    Reciver<MyPocket> recv(sockserv, socket_closed, ptr);
+    Reciver<MyPocket> recv(sockserv, socket_closed, ptr, 1);
 
     Pocket_Sys <MyPocket>  pocket{ MyPocket{ 0 }, 11, 2 };
 
@@ -435,11 +448,13 @@ TEST(Reciver, OpenInternet)
     std::shared_ptr<std::atomic <bool>> socket_closed(new std::atomic <bool>{ false });
     socket_closed->store(false);
 
-    cv_ptr _buffer_check(new std::condition_variable);
 
-    bufferIO_ptr<MyPocket> ptr(new BufferIO<MyPocket>(_buffer_check));
+    cv_ptr _buffer_checkO(new std::condition_variable);
+    cv_ptr _buffer_checkI(new std::condition_variable);
 
-    Reciver<MyPocket> recv(sockserv, socket_closed, ptr);
+    bufferIO_ptr<MyPocket> ptr(new BufferIO<MyPocket>(_buffer_checkO, _buffer_checkI));
+
+    Reciver<MyPocket> recv(sockserv, socket_closed, ptr, 1);
 
     Pocket_Sys <MyPocket>  pocket{ MyPocket{ 0 }, 11, 2 };
 
@@ -476,9 +491,11 @@ TEST(BasicFServer, ListenTryConnect)
     // mock without work
     service_ptr ios(new io_service);
 
-    cv_ptr _buffer_check(new std::condition_variable);
+    cv_ptr _buffer_checkO(new std::condition_variable);
+    cv_ptr _buffer_checkI(new std::condition_variable);
+    cv_ptr empty(new std::condition_variable);
 
-    bufferIO_ptr <MyPocket> ptr(new BufferIO<MyPocket>(_buffer_check));
+    bufferIO_ptr<MyPocket> ptr(new BufferIO<MyPocket>(_buffer_checkO, _buffer_checkI));
 
 #ifdef TEST_REAL_SITUATUON_MODE
 
@@ -487,7 +504,7 @@ TEST(BasicFServer, ListenTryConnect)
 
 #else
 
-    BasicFServer <MyPocket> basic_server(ptr, ios, "127.0.0.1", 2001);
+    BasicFServer <MyPocket> basic_server(ptr, ios, empty, "127.0.0.1", 2001);
     ip::tcp::endpoint ep(ip::address::from_string("127.0.0.1"), 2001);
 
 #endif
@@ -522,8 +539,12 @@ TEST(BasicFServer, DissconectExist)
 
     // mock without work
     service_ptr ios(new io_service);
-    cv_ptr _buffer_check(new std::condition_variable);
-    bufferIO_ptr <MyPocket> ptr(new BufferIO<MyPocket>(_buffer_check));
+
+    cv_ptr _buffer_checkO(new std::condition_variable);
+    cv_ptr _buffer_checkI(new std::condition_variable);
+    cv_ptr empty(new std::condition_variable);
+
+    bufferIO_ptr<MyPocket> ptr(new BufferIO<MyPocket>(_buffer_checkO, _buffer_checkI));
 
 #ifdef TEST_REAL_SITUATUON_MODE
 
@@ -532,7 +553,7 @@ TEST(BasicFServer, DissconectExist)
 
 #else
 
-    BasicFServer <MyPocket> basic_server(ptr, ios, "127.0.0.1", 2001);
+    BasicFServer <MyPocket> basic_server(ptr, ios,empty, "127.0.0.1", 2001);
     ip::tcp::endpoint ep(ip::address::from_string("127.0.0.1"), 2001);
 
 #endif
@@ -578,8 +599,12 @@ TEST(BasicFServer, DissconectNoExist)
 
     // mock without work
     service_ptr ios(new io_service);
-    cv_ptr _buffer_check(new std::condition_variable);
-    bufferIO_ptr <MyPocket> ptr(new BufferIO<MyPocket>(_buffer_check));
+    cv_ptr empty(new std::condition_variable);
+
+    cv_ptr _buffer_checkO(new std::condition_variable);
+    cv_ptr _buffer_checkI(new std::condition_variable);
+
+    bufferIO_ptr<MyPocket> ptr(new BufferIO<MyPocket>(_buffer_checkO, _buffer_checkI));
 
 #ifdef TEST_REAL_SITUATUON_MODE
 
@@ -588,7 +613,7 @@ TEST(BasicFServer, DissconectNoExist)
 
 #else
 
-    BasicFServer <MyPocket> basic_server(ptr, ios, "127.0.0.1", 2001);
+    BasicFServer <MyPocket> basic_server(ptr, ios,empty, "127.0.0.1", 2001);
     ip::tcp::endpoint ep(ip::address::from_string("127.0.0.1"), 2001);
 
 #endif
@@ -625,8 +650,12 @@ TEST(BasicFServer, IsFidOnline)
 
     // mock without work
     service_ptr ios(new io_service);
-    cv_ptr _buffer_check(new std::condition_variable);
-    bufferIO_ptr <MyPocket> ptr(new BufferIO<MyPocket>(_buffer_check));
+
+    cv_ptr _buffer_checkO(new std::condition_variable);
+    cv_ptr _buffer_checkI(new std::condition_variable);
+    cv_ptr empty(new std::condition_variable);
+
+    bufferIO_ptr<MyPocket> ptr(new BufferIO<MyPocket>(_buffer_checkO, _buffer_checkI));
 
 #ifdef TEST_REAL_SITUATUON_MODE
 
@@ -635,7 +664,7 @@ TEST(BasicFServer, IsFidOnline)
 
 #else
 
-    BasicFServer <MyPocket> basic_server(ptr, ios, "127.0.0.1", 2001);
+    BasicFServer <MyPocket> basic_server(ptr, ios,empty, "127.0.0.1", 2001);
     ip::tcp::endpoint ep(ip::address::from_string("127.0.0.1"), 2001);
 
 #endif
@@ -674,8 +703,12 @@ TEST(BasicFServer, startHealthServer)
 
     // mock without work
     service_ptr ios(new io_service);
-    cv_ptr _buffer_check(new std::condition_variable);
-    bufferIO_ptr <MyPocket> ptr(new BufferIO<MyPocket>(_buffer_check));
+
+    cv_ptr _buffer_checkO(new std::condition_variable);
+    cv_ptr _buffer_checkI(new std::condition_variable);
+    cv_ptr empty(new std::condition_variable);
+
+    bufferIO_ptr<MyPocket> ptr(new BufferIO<MyPocket>(_buffer_checkO, _buffer_checkI));
 
 #ifdef TEST_REAL_SITUATUON_MODE
 
@@ -684,7 +717,7 @@ TEST(BasicFServer, startHealthServer)
 
 #else
 
-    BasicFServer <MyPocket> basic_server(ptr, ios, "127.0.0.1", 2001);
+    BasicFServer <MyPocket> basic_server(ptr, ios, empty, "127.0.0.1", 2001);
     ip::tcp::endpoint ep(ip::address::from_string("127.0.0.1"), 2001);
 
 #endif
@@ -730,8 +763,11 @@ TEST(BasicFServer, _Off)
 
     // mock without work
     service_ptr ios(new io_service);
-    cv_ptr _buffer_check(new std::condition_variable);
-    bufferIO_ptr <MyPocket> ptr(new BufferIO<MyPocket>(_buffer_check));
+
+    cv_ptr _buffer_checkO(new std::condition_variable);
+    cv_ptr _buffer_checkI(new std::condition_variable);
+    cv_ptr empty(new std::condition_variable);
+    bufferIO_ptr<MyPocket> ptr(new BufferIO<MyPocket>(_buffer_checkO, _buffer_checkI));
 
 #ifdef TEST_REAL_SITUATUON_MODE
 
@@ -740,7 +776,7 @@ TEST(BasicFServer, _Off)
 
 #else
 
-    BasicFServer <MyPocket> basic_server(ptr, ios, "127.0.0.1", 2001);
+    BasicFServer <MyPocket> basic_server(ptr, ios, empty, "127.0.0.1", 2001);
     ip::tcp::endpoint ep(ip::address::from_string("127.0.0.1"), 2001);
 
 #endif
@@ -809,14 +845,15 @@ TEST(Sender, StartStop)
     Sender <MyPocket> sender;
 
     // tehnlogy wait stack to sender not edit
-    cv_ptr _buffer_check(new std::condition_variable);
+    cv_ptr _buffer_checkO(new std::condition_variable);
+    cv_ptr _buffer_checkI(new std::condition_variable);
 
-    bufferIO_ptr<MyPocket>  buffer_io(std::shared_ptr< BufferIO<MyPocket> >(new BufferIO<MyPocket>(_buffer_check)));
+    bufferIO_ptr<MyPocket> ptr(new BufferIO<MyPocket>(_buffer_checkO, _buffer_checkI));
 
     //A
 
     // cv_ptr for extra check about this variable
-    sender.start(buffer_io, _buffer_check);
+    sender.start(ptr, _buffer_checkO);
 
     //extra time raii
     Sleep(10);
@@ -834,14 +871,15 @@ TEST(Sender, addOut)
     Sender <MyPocket> sender;
 
     // tehnlogy wait stack to sender not edit
-    cv_ptr _buffer_check(new std::condition_variable);
+    cv_ptr _buffer_checkO(new std::condition_variable);
+    cv_ptr _buffer_checkI(new std::condition_variable);
 
-    bufferIO_ptr<MyPocket>  buffer_io(std::shared_ptr< BufferIO<MyPocket> >(new BufferIO<MyPocket>(_buffer_check)));
+    bufferIO_ptr<MyPocket> buffer_io(new BufferIO<MyPocket>(_buffer_checkO, _buffer_checkI));
 
     //A
 
     // cv_ptr for extra check about this variable
-    sender.start(buffer_io, _buffer_check);
+    sender.start(buffer_io, _buffer_checkO);
 
     buffer_io->addOut(Pocket_Sys<MyPocket>{ {5}, 1, 88} );
     buffer_io->addOut(Pocket_Sys<MyPocket>{ {7}, 2, 88} );
@@ -866,14 +904,15 @@ TEST(Sender, addOutHardTest)
     Sender <MyPocket> sender;
 
     // tehnlogy wait stack to sender not edit
-    cv_ptr _buffer_check(new std::condition_variable);
+    cv_ptr _buffer_checkO(new std::condition_variable);
+    cv_ptr _buffer_checkI(new std::condition_variable);
 
-    bufferIO_ptr<MyPocket>  buffer_io(std::shared_ptr< BufferIO<MyPocket> >(new BufferIO<MyPocket>(_buffer_check)));
+    bufferIO_ptr<MyPocket> buffer_io(new BufferIO<MyPocket>(_buffer_checkO, _buffer_checkI));
 
     //A
 
     // cv_ptr for extra check about this variable
-    sender.start(buffer_io, _buffer_check);
+    sender.start(buffer_io, _buffer_checkO);
 
     for(uint64_t i=0;i<100;i++)
           buffer_io->addOut(Pocket_Sys<MyPocket>{ {5}, 1, 1});
@@ -894,10 +933,688 @@ TEST(Sender, addOutHardTest)
 
 #endif
 
+#ifdef ENABLE_FILTER_I
+
+/////////////////////////////////////////////////////////
+// !!! Integrations test Reciver - BufferIO - Filter ////
+//                          \                    /
+//                               BasicFServer
+/////////////////////////////////////////////////////////
+
+TEST(ReciverFilter,reciveToUser)
+{
+    //A
+        cv_ptr empty(new std::condition_variable);
+        cv_ptr wait(new std::condition_variable);
+        cv_ptr empty1(new std::condition_variable);
+
+        bufferIO_ptr<MyPocket> buf(new BufferIO<MyPocket>(empty, wait));
+
+#ifdef TEST_REAL_SITUATUON_MODE
+        service_ptr io(new io_service);
+        basic_ptr<MyPocket> basic(new BasicFServer<MyPocket>(buf, io, "192.168.0.200", 21112));
+
+        ip::tcp::endpoint ep(ip::address::from_string("188.168.25.28"), 21112);
+#else
+        service_ptr io(new io_service);
+        basic_ptr<MyPocket> basic(new BasicFServer<MyPocket>(buf, io,empty1, "127.0.0.1", 2001));
+
+        ip::tcp::endpoint ep(ip::address::from_string("127.0.0.1"), 2001);
+#endif
+
+        ReciverFilter <MyPocket> filterI(buf, wait, basic);
+
+        socket_ptr sock_sender1(new ip::tcp::socket(*io));
+        socket_ptr sock_sender2(new ip::tcp::socket(*io));
+        socket_ptr sock_sender3(new ip::tcp::socket(*io));
+           
+
+    //A
+
+        basic->Listen();
+
+        sock_sender1->connect(ep);
+        sock_sender2->connect(ep);
+        sock_sender3->connect(ep);
+
+
+        //extra time for sock send
+        Sleep(10);
+
+        Pocket_Sys<MyPocket> pocket{ {5},56, 1};
+
+        sock_sender1->write_some(buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
+
+        pocket.pocket.n = 6;
+
+        sock_sender2->write_some(buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
+
+        pocket.pocket.n = 7;
+
+        sock_sender3->write_some(buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
+
+        auto pock1 = filterI.recv();
+        auto pock2 = filterI.recv();
+        auto pock3 = filterI.recv();
+
+        int sum = pock1.first.n + pock2.first.n + pock3.first.n;
+
+
+        basic->_Off();
+
+    //A
+
+        ASSERT_EQ(sum, 18);
+        ASSERT_EQ(pock1.second + pock2.second +pock3.second, 6);
+
+}
+
+TEST(ReciverFilter, reciveToServer)
+{
+    //A
+    cv_ptr empty(new std::condition_variable);
+    cv_ptr wait(new std::condition_variable);
+    cv_ptr empty1(new std::condition_variable);
+
+    bufferIO_ptr<MyPocket> buf(new BufferIO<MyPocket>(empty, wait));
+
+#ifdef TEST_REAL_SITUATUON_MODE
+    service_ptr io(new io_service);
+    basic_ptr<MyPocket> basic(new BasicFServer<MyPocket>(buf, io, "192.168.0.200", 21112));
+
+    ip::tcp::endpoint ep(ip::address::from_string("188.168.25.28"), 21112);
+#else
+    service_ptr io(new io_service);
+    basic_ptr<MyPocket> basic(new BasicFServer<MyPocket>(buf, io, empty1, "127.0.0.1", 2001));
+
+    ip::tcp::endpoint ep(ip::address::from_string("127.0.0.1"), 2001);
+#endif
+
+
+    ReciverFilter <MyPocket> filterI(buf, wait, basic);
+
+    socket_ptr sock_sender1(new ip::tcp::socket(*io));
+    socket_ptr sock_sender2(new ip::tcp::socket(*io));
+    socket_ptr sock_sender3(new ip::tcp::socket(*io));
+
+
+    //A
+
+    basic->Listen();
+
+    sock_sender1->connect(ep);
+    sock_sender2->connect(ep);
+    sock_sender3->connect(ep);
+
+
+    //extra time for sock send
+    Sleep(10);
+
+    Pocket_Sys<MyPocket> pocket{ {5},56, 1 };
+
+    pocket.command = Pocket_Sys<MyPocket>::commands::CloseMe;
+
+    pocket.is_command = true;
+
+    //pocket.is_command
+
+    sock_sender1->write_some(buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
+
+    pocket.pocket.n = 6;
+
+    sock_sender2->write_some(buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
+
+    pocket.pocket.n = 7;
+
+    pocket.is_command = false;
+
+    sock_sender3->write_some(buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
+
+    int out = filterI.recv().first.n;
+
+    basic->_Off();
+
+    //A
+
+    ASSERT_EQ(out, 7);
+}
+
+#endif
+
+#ifdef ENABLE_FILTER_O
+
+
+///////////////////////////////////////////////
+// !!! Integrations test |   Unit Testing  ////
+///////////////////////////////////////////////
+
+TEST(ReciverFilter, send_to_false)
+{
+    //A
+
+    // indetification BufferIO
+    cv_ptr empty(new std::condition_variable);
+    cv_ptr wait(new std::condition_variable);
+    cv_ptr empty1(new std::condition_variable);
+    bufferIO_ptr<MyPocket> buf(new BufferIO<MyPocket>(empty, wait));
+
+    // indetification Basic
+    service_ptr io(new io_service);
+    basic_ptr<MyPocket> basic(new BasicFServer<MyPocket>(buf, io,empty1, "127.0.0.1", 2001));
+
+    SenderFilter<MyPocket> filter(buf, basic);
+
+    //A
+    
+    auto out = filter.send_to(MyPocket{ 5 }, 1 );
+
+    //A
+
+    ASSERT_EQ(out, false);
+}
+
+TEST(ReciverFilter, send_to_true)
+{
+    //A
+
+    // indetification BufferIO
+    cv_ptr empty(new std::condition_variable);
+    cv_ptr wait(new std::condition_variable);
+    cv_ptr empty1(new std::condition_variable);
+    bufferIO_ptr<MyPocket> buf(new BufferIO<MyPocket>(empty, wait));
+
+    // indetification Basic
+    service_ptr io(new io_service);
+    basic_ptr<MyPocket> basic(new BasicFServer<MyPocket>(buf, io,empty1, "127.0.0.1", 2001));
+
+    SenderFilter<MyPocket> filter(buf, basic);
+
+    socket_ptr sock(new ip::tcp::socket(*io));
+
+    ip::tcp::endpoint ep(ip::address::from_string("127.0.0.1"), 2001);
+    
+    //A
+
+
+    basic->Listen();
+
+    sock->connect(ep);
+
+    //extra time to connect
+    Sleep(10);
+
+    auto out = filter.send_to(MyPocket{ 5 }, 1);
+
+    Pocket_Sys<MyPocket> pocket;
+
+    buf->getFOut(pocket);
+
+    //A
+
+    ASSERT_EQ(out, true);
+    ASSERT_EQ(pocket.fid, 1);
+    ASSERT_EQ(pocket.is_command, false);
+    ASSERT_EQ(pocket.pocket.n, 5);
+    
+}
+
+
+TEST(ReciverFilter, send_to_all_ignore)
+{
+
+    //A
+    
+    // indetification BufferIO
+    cv_ptr empty(new std::condition_variable);
+    cv_ptr wait(new std::condition_variable);
+    cv_ptr empty1(new std::condition_variable);
+
+    bufferIO_ptr<MyPocket> buf(new BufferIO<MyPocket>(empty, wait));
+
+    // indetification Basic
+    service_ptr io(new io_service);
+    basic_ptr<MyPocket> basic(new BasicFServer<MyPocket>(buf, io,empty1, "127.0.0.1", 2001));
+
+    SenderFilter<MyPocket> filter(buf, basic);
+
+    socket_ptr sock1(new ip::tcp::socket(*io));
+    socket_ptr sock2(new ip::tcp::socket(*io));
+    socket_ptr sock3(new ip::tcp::socket(*io));
+
+    ip::tcp::endpoint ep(ip::address::from_string("127.0.0.1"), 2001);
+
+    //A
+
+
+    basic->Listen();
+
+    sock1->connect(ep);
+    sock2->connect(ep);
+    sock3->connect(ep);
+
+    //extra time to connect
+    Sleep(10);
+
+    sock3->close();
+
+    //extra time to disconnect
+    Sleep(10);
+
+    basic->startHealthServer();
+
+    auto out = filter.send_to_all(MyPocket{ 5 }, 2);
+
+    
+
+    Pocket_Sys<MyPocket> pocket;
+
+    buf->getFOut(pocket);
+
+    int is = buf->getFOut(pocket);
+
+    //A
+
+    ASSERT_EQ(is, 0);
+    ASSERT_EQ(out, 1);
+    ASSERT_EQ(pocket.fid, 1);
+    ASSERT_EQ(pocket.is_command, false);
+
+
+}
+
+TEST(ReciverFilter, send_to_all_not_ignore)
+{
+
+    //A
+
+    // indetification BufferIO
+    cv_ptr empty(new std::condition_variable);
+    cv_ptr wait(new std::condition_variable);
+    cv_ptr empty1(new std::condition_variable);
+
+    bufferIO_ptr<MyPocket> buf(new BufferIO<MyPocket>(empty, wait));
+
+    // indetification Basic
+    service_ptr io(new io_service);
+    basic_ptr<MyPocket> basic(new BasicFServer<MyPocket>(buf, io,empty1, "127.0.0.1", 2001));
+
+    SenderFilter<MyPocket> filter(buf, basic);
+
+    socket_ptr sock1(new ip::tcp::socket(*io));
+    socket_ptr sock2(new ip::tcp::socket(*io));
+    socket_ptr sock3(new ip::tcp::socket(*io));
+
+    ip::tcp::endpoint ep(ip::address::from_string("127.0.0.1"), 2001);
+
+    //A
+
+
+    basic->Listen();
+
+    sock1->connect(ep);
+    sock2->connect(ep);
+    sock3->connect(ep);
+
+    //extra time to connect
+    Sleep(10);
+
+    sock3->close();
+
+    //extra time to disconnect
+    Sleep(10);
+
+    basic->startHealthServer();
+
+    auto out = filter.send_to_all(MyPocket{ 5 }, -1);
+
+    Pocket_Sys<MyPocket> pocket1;
+    Pocket_Sys<MyPocket> pocket2;
+
+
+    buf->getFOut(pocket1);
+
+    buf->getFOut(pocket2);
+
+    int is = buf->getFOut(pocket1);
+
+    //A
+
+    ASSERT_EQ(is, 0);
+    ASSERT_EQ(out, 2);
+    ASSERT_EQ(pocket1.fid + pocket2.fid, 3);
+
+}
+
+TEST(ReciverFilter, new_group)
+{
+    //A
+
+    // indetification BufferIO mock
+    bufferIO_ptr<MyPocket> buf;
+
+    // indetification Basic mock
+    basic_ptr<MyPocket> basic;
+
+    SenderFilter<MyPocket> filter(buf, basic);
+
+    auto gid1 = filter.new_group();
+    auto gid2 = filter.new_group();
+
+    ASSERT_EQ(gid1,1);
+    ASSERT_EQ(gid2,2);
+
+}
+
+TEST(ReciverFilter, new_group_vector)
+{
+    //A
+
+    // indetification BufferIO mock
+    bufferIO_ptr<MyPocket> buf;
+
+    // indetification Basic mock
+    basic_ptr<MyPocket> basic;
+
+    SenderFilter<MyPocket> filter(buf, basic);
+
+    auto gid1 = filter.new_group(std::vector{ 3, 5 });
+    auto gid2 = filter.new_group(std::vector{ 1, 3 });
+
+    auto vec = filter.get_group_list(2);
+
+    ASSERT_EQ(gid1, 1);
+    ASSERT_EQ(gid2, 2);
+    ASSERT_EQ(vec[0], 1);
+    ASSERT_EQ(vec[1], 3);
+
+}
+
+TEST(ReciverFilter, delete_from_group_true)
+{
+    //A
+
+    // indetification BufferIO mock
+    bufferIO_ptr<MyPocket> buf;
+
+    // indetification Basic mock
+    basic_ptr<MyPocket> basic;
+
+    SenderFilter<MyPocket> filter(buf, basic);
+
+    //A
+
+    auto gid1 = filter.new_group(std::vector{ 3, 5 });
+    auto gid2 = filter.new_group(std::vector{ 1, 3 });
+
+    auto is = filter.delete_from_group(2, 1);
+
+    auto vec = filter.get_group_list(2);
+
+
+    //A
+
+    ASSERT_EQ(gid1, 1);
+    ASSERT_EQ(gid2, 2);
+    ASSERT_EQ(is, true);
+    ASSERT_EQ(vec.size(), 1);
+    ASSERT_EQ(vec[0], 3);
+}
+
+TEST(ReciverFilter, delete_from_group_false1)
+{
+    //A
+
+    // indetification BufferIO mock
+    bufferIO_ptr<MyPocket> buf;
+
+    // indetification Basic mock
+    basic_ptr<MyPocket> basic;
+
+    SenderFilter<MyPocket> filter(buf, basic);
+
+    //A
+
+    auto gid1 = filter.new_group(std::vector{ 3, 5 });
+    auto gid2 = filter.new_group(std::vector{ 1, 3 });
+
+    auto is = filter.delete_from_group(3, 1);
+
+    auto vec = filter.get_group_list(2);
+
+
+    //A
+
+    ASSERT_EQ(gid1, 1);
+    ASSERT_EQ(gid2, 2);
+    ASSERT_EQ(is, false);
+    ASSERT_EQ(vec.size(), 2);
+    ASSERT_EQ(vec[1], 3);
+}
+
+TEST(ReciverFilter, delete_from_group_false2)
+{
+    //A
+
+    // indetification BufferIO mock
+    bufferIO_ptr<MyPocket> buf;
+
+    // indetification Basic mock
+    basic_ptr<MyPocket> basic;
+
+    SenderFilter<MyPocket> filter(buf, basic);
+
+    //A
+
+    auto gid1 = filter.new_group(std::vector{ 3, 5 });
+    auto gid2 = filter.new_group(std::vector{ 1, 3 });
+
+    auto is = filter.delete_from_group(2, 2);
+
+    auto vec = filter.get_group_list(2);
+
+
+    //A
+
+    ASSERT_EQ(is, false);
+    ASSERT_EQ(vec.size(), 2);
+    ASSERT_EQ(vec[1], 3);
+}
+
+TEST(ReciverFilter, send_to_group_true)
+{
+
+    //A
+
+    // indetification BufferIO
+    cv_ptr empty(new std::condition_variable);
+    cv_ptr wait(new std::condition_variable);
+    cv_ptr empty1(new std::condition_variable);
+
+    bufferIO_ptr<MyPocket> buf(new BufferIO<MyPocket>(empty, wait));
+
+    // indetification Basic
+    service_ptr io(new io_service);
+    basic_ptr<MyPocket> basic(new BasicFServer<MyPocket>(buf, io, empty1, "127.0.0.1", 2001));
+
+    SenderFilter<MyPocket> filter(buf, basic);
+
+    socket_ptr sock1(new ip::tcp::socket(*io));
+    socket_ptr sock2(new ip::tcp::socket(*io));
+    socket_ptr sock3(new ip::tcp::socket(*io));
+
+    ip::tcp::endpoint ep(ip::address::from_string("127.0.0.1"), 2001);
+
+    //A
+
+
+    basic->Listen();
+
+    sock1->connect(ep);
+    sock2->connect(ep);
+    sock3->connect(ep);
+
+    //extra time to connect
+    Sleep(10);
+
+    sock1->close();
+
+    //extra time to disconnect
+    Sleep(10);
+
+    int gid = filter.new_group();
+
+    filter.add_to_group(gid, 1);
+    filter.add_to_group(gid,2);
+
+    auto out = filter.send_to_group(MyPocket{ 5 }, 1);
+
+    Pocket_Sys<MyPocket> pocket1;
+
+    buf->getFOut(pocket1);
+
+    int is = buf->getFOut(pocket1);
+
+    //A
+
+    ASSERT_EQ(is, 0);
+    ASSERT_EQ(out, 1);
+    ASSERT_EQ(pocket1.fid, 2);
+
+}
+
+TEST(ReciverFilter, send_to_group_false)
+{
+
+    //A
+
+    // indetification BufferIO
+    cv_ptr empty(new std::condition_variable);
+    cv_ptr wait(new std::condition_variable);
+    cv_ptr empty1(new std::condition_variable);
+
+    bufferIO_ptr<MyPocket> buf(new BufferIO<MyPocket>(empty, wait));
+
+    // indetification Basic
+    service_ptr io(new io_service);
+    basic_ptr<MyPocket> basic(new BasicFServer<MyPocket>(buf, io, empty1, "127.0.0.1", 2001));
+
+    SenderFilter<MyPocket> filter(buf, basic);
+
+    socket_ptr sock1(new ip::tcp::socket(*io));
+    socket_ptr sock2(new ip::tcp::socket(*io));
+    socket_ptr sock3(new ip::tcp::socket(*io));
+
+    ip::tcp::endpoint ep(ip::address::from_string("127.0.0.1"), 2001);
+
+    //A
+
+
+    basic->Listen();
+
+    sock1->connect(ep);
+    sock2->connect(ep);
+    sock3->connect(ep);
+
+    //extra time to connect
+    Sleep(10);
+
+    sock1->close();
+
+    //extra time to disconnect
+    Sleep(10);
+
+    int gid = filter.new_group();
+
+    filter.add_to_group(gid, 1);
+    filter.add_to_group(gid, 2);
+
+    basic->startHealthServer();
+
+    auto out = filter.send_to_group(MyPocket{ 5 }, 3);
+
+    Pocket_Sys<MyPocket> pocket1;
+
+    int is = buf->getFOut(pocket1);
+
+    //A
+
+    ASSERT_EQ(is, 0);
+    ASSERT_EQ(out, -1);
+
+}
+
+#endif
+
+#ifdef ENABLE_LEFT_E2E
+
+
+////////////////////////
+// End to End TESTING //
+////////////////////////
+
+// please skip DEBUG_SENDER in io.hpp
+
+TEST(BasicFServer, E2E_LEFT_SEND_SOCKET_OUT)
+{
+    //A
+     
+    // indetification BufferIO
+    cv_ptr senderfilter(new std::condition_variable);
+    cv_ptr reciverfilter(new std::condition_variable);
+
+    bufferIO_ptr<MyPocket> buf(new BufferIO<MyPocket>(senderfilter, reciverfilter));
+
+    // indetification Basic
+    service_ptr io(new io_service);
+    basic_ptr <MyPocket> basic(new BasicFServer<MyPocket>(buf, io, senderfilter, "127.0.0.1", 2001));
+
+    SenderFilter<MyPocket> filter(buf, basic);
+
+    socket_ptr sock1(new ip::tcp::socket(*io));
+    socket_ptr sock2(new ip::tcp::socket(*io));
+
+    ip::tcp::endpoint ep(ip::address::from_string("127.0.0.1"), 2001);
+    
+    //A
+
+    basic->Listen();
+
+    sock1->connect(ep);
+    sock2->connect(ep);
+
+    //Extra connect
+    Sleep(10);
+
+    MyPocket pocket{ 5 };
+    Pocket_Sys<MyPocket> recv1;
+    Pocket_Sys<MyPocket> recv2;
+
+    filter.send_to(pocket,1);
+
+    pocket.n = 7;
+
+    filter.send_to(pocket, 2);
+
+    sock1->read_some(buffer(&recv1, sizeof(Pocket_Sys<MyPocket>)));
+    sock2->read_some(buffer(&recv2, sizeof(Pocket_Sys<MyPocket>)));
+    
+    //A
+
+    ASSERT_EQ(recv1.pocket.n,5);
+    ASSERT_EQ(recv2.pocket.n,7);
+}
+
+#endif
+
+//using Out = _Out<MyPocket>;
 
 int main(int argc,char** argv)
 {
-    testing::InitGoogleTest(&argc,argv);
-    return RUN_ALL_TESTS();
 
+    //FServer<MyPocket> serv("127.0.0.1", 2001);
+
+    //serv << Out { MyPocket{ 5 }, FType::ALL, 5 };
+
+    testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }

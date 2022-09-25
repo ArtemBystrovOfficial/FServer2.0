@@ -43,7 +43,7 @@ public:
 	Reciver() = delete;
 
 	// start Reciver when contruction
-	Reciver(socket_ptr ptr, bool_atc_ptr socket_close_status, bufferIO_ptr<_Pocket> );
+	Reciver(socket_ptr ptr, bool_atc_ptr socket_close_status, bufferIO_ptr<_Pocket>,int fid );
 
 	//return 0 if socket close and recived is safety closed
 	//return -1 if socket doesn't closed and close does'nt safery
@@ -66,6 +66,7 @@ private:
 	void recive_from();
 
 	// Manage lifetime reciver
+	int fid;
 	std::thread _run;
 	std::atomic<bool> is_ext;
 	bool_atc_ptr _is_socket_closed;
@@ -77,10 +78,11 @@ private:
 };
 
 template<class _Pocket>
-Reciver<_Pocket>::Reciver(socket_ptr ptr, bool_atc_ptr socket_close_status, bufferIO_ptr<_Pocket> buffer_io) : sock(ptr),
+Reciver<_Pocket>::Reciver(socket_ptr ptr, bool_atc_ptr socket_close_status, bufferIO_ptr<_Pocket> buffer_io,int fid) : sock(ptr),
 																			  _is_socket_closed(socket_close_status),
 																			  _current_pocket_id(1),
-																			  buffer_io(buffer_io)
+																			  buffer_io(buffer_io),
+																			  fid(fid)
 {
 	if (socket_close_status.get() == nullptr)
 		throw std::exception("nullptr on socket closed check - > Reciver");
@@ -113,6 +115,9 @@ void Reciver<_Pocket>::recive_from()
 				_is_socket_closed->store(true);
 			break;
 		}
+
+		// set fid for next manipulations
+		pocket.fid = fid;
 
 		if (!is_ext.load())
 		{
@@ -151,7 +156,7 @@ void Reciver<_Pocket>::recive_from()
 									std::cout << "number of pocket: " << it->_pocket_id << "fid: " << it->fid << "\n";
 #endif	
 									// add pocket to bufferIO
-									buffer_io->addIn(pocket);
+									buffer_io->addIn(*it);
 
 									_pockets_queue.erase(it);
 									++_current_pocket_id;
@@ -330,9 +335,8 @@ void Sender<_Pocket>::send_to()
 
 		// wait for buffer
 		{
-			std::unique_lock<std::mutex> lck(mtx);
-			waitget->wait(lck, [&] {
-				
+			std::unique_lock<std::mutex> lock(mtx);
+			waitget->wait(lock, [&] {		
 				return !buffer_io->outIsEmpty() || is_ext.load();
 			});
 		}
@@ -341,6 +345,7 @@ void Sender<_Pocket>::send_to()
 		{
 			continue;
 		}
+
 #ifndef DEBUG_SENDER	
 		mtx.lock();
 
