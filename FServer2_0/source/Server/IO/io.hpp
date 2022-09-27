@@ -13,9 +13,9 @@ const uint64_t max_count_pockets = 63'072'000'000; // 20 pocket / sec for 100 ye
 #include "buffer.hpp"
 
 //#define TEST_CON1 // iostream enable for some tests
-#define TEST_CON2 // iostream enable for some tests
+//#define TEST_CON2 // iostream enable for some tests
 
-#define DEBUG_SENDER
+//#define DEBUG_SENDER
 
 #ifdef TEST_CON1 
 	#include <iostream>
@@ -327,9 +327,10 @@ template<class _Pocket>
 void Sender<_Pocket>::send_to()
 {
 	Pocket_Sys<_Pocket> pocket;
-
+	
 	while (!is_ext.load())
 	{
+
 		// select and poll
 		// block_out 
 
@@ -345,6 +346,7 @@ void Sender<_Pocket>::send_to()
 		{
 			continue;
 		}
+
 
 #ifndef DEBUG_SENDER	
 		mtx.lock();
@@ -378,12 +380,14 @@ void Sender<_Pocket>::send_to()
 
 
 #ifndef DEBUG_SENDER
+		
 		sock->write_some(asio::buffer(&pocket, sizeof(Pocket_Sys<_Pocket>)));
 #else
 		std::cout << pocket.pocket << " " << pocket.fid << " " << pocket._pocket_id << std::endl;
 #endif
 
 	}
+
 
 	is_ext.store(true);
 }

@@ -10,6 +10,10 @@
 #include <atomic>
 #include <Windows.h>
 
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+
 //#define ENABLE_BUFFERIO
 //#define ENABLE_I
 //#define ENABLE_BASIC
@@ -17,6 +21,7 @@
 //#define ENABLE_FILTER_I
 //#define ENABLE_FILTER_O
 //#define ENABLE_LEFT_E2E
+#define ENABLE_CENTER_E2E
 
 
 //#define TEST_REAL_SITUATUON_MODE
@@ -1545,6 +1550,8 @@ TEST(ReciverFilter, send_to_group_false)
 
 #endif
 
+//!!!! DISABLE ALL DEBUG DEFINE IN ALL FILES FOR NEXT TESTS
+
 #ifdef ENABLE_LEFT_E2E
 
 
@@ -1606,15 +1613,231 @@ TEST(BasicFServer, E2E_LEFT_SEND_SOCKET_OUT)
 
 #endif
 
+//30 pockets 3 sockets
+#ifdef ENABLE_CENTER_E2E
+
+using Out = _Out<MyPocket>;
+
+TEST(FServer, BasicStrain)
+{
+    
+    io_service ios;
+    
+    FServer<MyPocket> fserver("127.0.0.1", 2001);
+    
+    socket_ptr sock1(new ip::tcp::socket(ios));
+    socket_ptr sock2(new ip::tcp::socket(ios));
+    socket_ptr sock3(new ip::tcp::socket(ios));
+
+    ip::tcp::endpoint ep(ip::address::from_string("127.0.0.1"), 2001);
+    
+    fserver.start();
+
+    sock1->connect(ep);
+    sock2->connect(ep);
+    sock3->connect(ep);
+   
+    //extra connect seconds
+    Sleep(10);
+    
+    Pocket_Sys<MyPocket> pocket;
+
+    pocket.is_command = false;
+   
+
+    for (int i = 0; i < 10; i++)
+    {
+        pocket.pocket.n = i;
+        pocket._pocket_id = i + 1;
+        
+        sock1->write_some(buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
+    }
+    for (int i = 0; i < 10; i++)
+    {
+        pocket.pocket.n = i;
+        pocket._pocket_id = i + 1;
+
+        sock2->write_some(buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
+    }
+    for (int i = 0; i < 10; i++)
+    {
+        pocket.pocket.n = i;
+        pocket._pocket_id = i + 1;
+
+        sock3->write_some(buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
+    }
+
+    std::pair <MyPocket, int> data;
+
+    for (int i = 0; i < 30; i++)
+    {
+        fserver >> data;
+
+        auto& [pocket, fid] = data;
+
+        pocket.n *= 2;
+        fserver << Out{ pocket,FType::FID,fid };
+    }
+    
+    int sum = 0;
+    for (int i = 0; i < 10; i++)
+    {
+        sock1->read_some(buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
+
+        ASSERT_EQ(pocket._pocket_id, i + 1);
+        sum += pocket.pocket.n;
+
+    }
+    ASSERT_EQ(sum, 90);
+    sum = 0;
+    for (int i = 0; i < 10; i++)
+    {
+        sock2->read_some(buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
+
+        ASSERT_EQ(pocket._pocket_id, i + 1);
+        sum += pocket.pocket.n;
+    }
+    ASSERT_EQ(sum, 90);
+    sum = 0;
+    for (int i = 0; i < 10; i++)
+    {
+        sock3->read_some(buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
+
+        ASSERT_EQ(pocket._pocket_id, i + 1);
+        sum += pocket.pocket.n;
+    }
+    ASSERT_EQ(sum, 90);
+    
+    //fserver << Out{ MyPocket{5}, FType::FID, 1 };
+
+}
+
+//150 000 pockets 3 sockets paralell real sitution with purpose
+TEST(FServer, HighStrain)
+{
+    io_service ios;
+
+    FServer<MyPocket> fserver("192.168.0.200", 21112);
+
+    socket_ptr sock1(new ip::tcp::socket(ios));
+    socket_ptr sock2(new ip::tcp::socket(ios));
+    socket_ptr sock3(new ip::tcp::socket(ios));
+
+    ip::tcp::endpoint ep(ip::address::from_string("188.168.25.28"), 21112);
+
+    fserver.start();
+
+    sock1->connect(ep);
+    sock2->connect(ep);
+    sock3->connect(ep);
+
+    //extra connect seconds
+    Sleep(100);
+
+    Pocket_Sys<MyPocket> pocket;
+
+    pocket.is_command = false;
+
+
+    for (int i = 0; i < 50000; i++)
+    {
+        pocket.pocket.n = i;
+        pocket._pocket_id = i + 1;
+
+        sock1->write_some(buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
+
+        sock2->write_some(buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
+
+        sock3->write_some(buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
+    }
+
+    std::pair <MyPocket, int> data;
+
+    std::thread thr1(
+        [&] {
+            long long sum = 0;
+            Pocket_Sys<MyPocket> pocket1;
+            for (int i = 0; i < 50000; i++)
+            {
+
+                sock1->read_some(buffer(&pocket1, sizeof(Pocket_Sys <MyPocket>)));
+
+                //ASSERT_EQ(pocket._pocket_id, i + 1);
+                sum += pocket1.pocket.n;
+
+            }
+            ASSERT_EQ(sum, 2'499'950'000);
+
+        }
+    );
+
+    std::thread thr2(
+        [&] {
+            long long sum = 0;
+            Pocket_Sys<MyPocket> pocket2;
+            for (int i = 0; i < 50000; i++)
+            {
+               
+                sock2->read_some(buffer(&pocket2, sizeof(Pocket_Sys <MyPocket>)));
+
+                //ASSERT_EQ(pocket._pocket_id, i + 1);
+                sum += pocket2.pocket.n;
+            }
+            ASSERT_EQ(sum, 2'499'950'000);
+
+        }
+    );
+
+    std::thread thr3(
+        [&] {
+            long long sum = 0;
+            Pocket_Sys<MyPocket> pocket3;
+            for (int i = 0; i < 50000; i++)
+            {
+                
+                sock3->read_some(buffer(&pocket3, sizeof(Pocket_Sys <MyPocket>)));
+
+                //ASSERT_EQ(pocket._pocket_id, i + 1);
+                sum += pocket3.pocket.n;
+            }
+           ASSERT_EQ(sum, 2'499'950'000);
+
+        }
+    );
+
+    int sumin = 0;
+
+    for (int i = 0; i < 150000; i++)
+    {
+        fserver >> data;
+
+        auto& [pocket, fid] = data;
+
+        sumin += pocket.n;
+        pocket.n *= 2;
+        fserver << Out{ pocket,FType::FID,fid };
+    }
+    ASSERT_EQ(sumin, 3'749'925'000);
+
+    thr1.join();
+    thr2.join();
+    thr3.join();
+
+}
+
+#endif
+
+
 //using Out = _Out<MyPocket>;
 
 int main(int argc,char** argv)
 {
 
-    //FServer<MyPocket> serv("127.0.0.1", 2001);
-
-    //serv << Out { MyPocket{ 5 }, FType::ALL, 5 };
+    // check memory leaks
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
     testing::InitGoogleTest(&argc, argv);
+
     return RUN_ALL_TESTS();
+
 }

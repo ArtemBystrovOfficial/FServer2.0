@@ -66,7 +66,11 @@ public:
 		r_filter = rfilter_ptr <_Pocket> (new ReciverFilter<_Pocket>(buffer, w_reciver, basic));
 		s_filter = sfilter_ptr <_Pocket> (new SenderFilter<_Pocket>(buffer, basic));
 	}
-
+	~FServer() {
+	
+		basic->setExit();
+	
+	}
 	/////////////////////////
 	// start and stop listen
 	/////////////////////////

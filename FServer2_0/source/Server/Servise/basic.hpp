@@ -65,6 +65,7 @@ public:
 		, io_s(service)
 		, buffer_io(ptr)
 	{
+		is_exit.store(false);
 		sender.start(buffer_io,wait_sender);
 	}
 
@@ -89,6 +90,16 @@ public:
 
 	// Safety stop listening
 	void _Off();
+
+	bool isExit()
+	{
+		return is_exit.load();
+	}
+
+	void setExit()
+	{
+		is_exit.store(true);
+	}
 
 	~BasicFServer();
 
@@ -128,6 +139,7 @@ private:
 	bufferIO_ptr<_Pocket> buffer_io;
 
 	std::atomic <bool> is_working;
+	std::atomic <bool> is_exit;
 
 	// id < Socket, Reciver >
 	std::map < int32_t, User_Session<_Pocket> > users;

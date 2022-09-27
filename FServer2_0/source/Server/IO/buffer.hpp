@@ -49,6 +49,11 @@ public:
 		return _in.empty();
 	}
 
+	~BufferIO()
+	{
+
+	}
+
 private:
 
 	std::deque < Pocket_Sys<_Pocket> > _in , _out;
@@ -119,13 +124,13 @@ template < class _Pocket>
 inline int BufferIO<_Pocket>::addOut(const Pocket_Sys<_Pocket>& pocket)
 {
 
-	_lockIn.lock();
+	_lockOut.lock();
 
 	_out.push_back(pocket);
 
 	waitgetOut->notify_one();
 
-	_lockIn.unlock();
+	_lockOut.unlock();
 
 	return 1;
 }

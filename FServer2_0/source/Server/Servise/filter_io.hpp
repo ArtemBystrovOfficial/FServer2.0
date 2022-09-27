@@ -24,6 +24,7 @@ public:
 	ReciverFilter(bufferIO_ptr<_Pocket> ptr, cv_ptr  waitget, basic_ptr <_Pocket> basic_server)
 	{
 		this->waitget = waitget;
+		this->basic_server = basic_server;
 		buffer_io = ptr;
 	}
 
@@ -50,8 +51,11 @@ std::pair <_Pocket, int> ReciverFilter<_Pocket>::recv()
 	{
 		{
 			std::unique_lock <std::mutex> lock(mtx);
-			waitget->wait(lock, [&] { return !buffer_io->inIsEmpty();  });
+			waitget->wait(lock, [&] { return !buffer_io->inIsEmpty() || basic_server->isExit();  });
 		}
+
+		if (basic_server->isExit())
+			break;
 
 		Pocket_Sys <_Pocket> pocket;
 		if (buffer_io->getFIn(pocket) != 0)
