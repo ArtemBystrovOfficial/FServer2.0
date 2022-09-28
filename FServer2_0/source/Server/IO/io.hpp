@@ -279,6 +279,7 @@ private:
 	std::map<int, int> last_pocket;
 	std::mutex mtx;
 	cv_ptr waitget;
+	error_code ec;
 
 };
 
@@ -380,8 +381,9 @@ void Sender<_Pocket>::send_to()
 
 
 #ifndef DEBUG_SENDER
-		
-		sock->write_some(asio::buffer(&pocket, sizeof(Pocket_Sys<_Pocket>)));
+		sock->write_some(asio::buffer(&pocket, sizeof(Pocket_Sys<_Pocket>)),ec);
+		if (ec)
+			continue;
 #else
 		std::cout << pocket.pocket << " " << pocket.fid << " " << pocket._pocket_id << std::endl;
 #endif
@@ -408,11 +410,7 @@ Sender<_Pocket>::~Sender()
 {
 	if (!is_ext.load())
 	{
-		is_ext.store(true);
-
-		waitget->notify_one();
-
-		_run.join();
+		ext();
 	}
 }
 

@@ -6,8 +6,6 @@
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include <thread>
-#include <atomic>
 #include <Windows.h>
 
 #define _CRTDBG_MAP_ALLOC
@@ -21,7 +19,7 @@
 //#define ENABLE_FILTER_I
 //#define ENABLE_FILTER_O
 //#define ENABLE_LEFT_E2E
-#define ENABLE_CENTER_E2E
+//#define ENABLE_CENTER_E2E
 
 
 //#define TEST_REAL_SITUATUON_MODE
@@ -1616,40 +1614,41 @@ TEST(BasicFServer, E2E_LEFT_SEND_SOCKET_OUT)
 //30 pockets 3 sockets
 #ifdef ENABLE_CENTER_E2E
 
+
 using Out = _Out<MyPocket>;
 
 TEST(FServer, BasicStrain)
 {
-    
+
     io_service ios;
-    
+
     FServer<MyPocket> fserver("127.0.0.1", 2001);
-    
+
     socket_ptr sock1(new ip::tcp::socket(ios));
     socket_ptr sock2(new ip::tcp::socket(ios));
     socket_ptr sock3(new ip::tcp::socket(ios));
 
     ip::tcp::endpoint ep(ip::address::from_string("127.0.0.1"), 2001);
-    
+
     fserver.start();
 
     sock1->connect(ep);
     sock2->connect(ep);
     sock3->connect(ep);
-   
+
     //extra connect seconds
     Sleep(10);
-    
+
     Pocket_Sys<MyPocket> pocket;
 
     pocket.is_command = false;
-   
+
 
     for (int i = 0; i < 10; i++)
     {
         pocket.pocket.n = i;
         pocket._pocket_id = i + 1;
-        
+
         sock1->write_some(buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
     }
     for (int i = 0; i < 10; i++)
@@ -1678,7 +1677,7 @@ TEST(FServer, BasicStrain)
         pocket.n *= 2;
         fserver << Out{ pocket,FType::FID,fid };
     }
-    
+
     int sum = 0;
     for (int i = 0; i < 10; i++)
     {
@@ -1707,23 +1706,25 @@ TEST(FServer, BasicStrain)
         sum += pocket.pocket.n;
     }
     ASSERT_EQ(sum, 90);
-    
+
     //fserver << Out{ MyPocket{5}, FType::FID, 1 };
 
 }
 
 //150 000 pockets 3 sockets paralell real sitution with purpose
+
 TEST(FServer, HighStrain)
 {
+
     io_service ios;
 
-    FServer<MyPocket> fserver("192.168.0.200", 21112);
+    FServer<MyPocket> fserver("127.0.0.1", 2001);
 
     socket_ptr sock1(new ip::tcp::socket(ios));
     socket_ptr sock2(new ip::tcp::socket(ios));
     socket_ptr sock3(new ip::tcp::socket(ios));
 
-    ip::tcp::endpoint ep(ip::address::from_string("188.168.25.28"), 21112);
+    ip::tcp::endpoint ep(ip::address::from_string("127.0.0.1"), 2001);
 
     fserver.start();
 
@@ -1777,7 +1778,7 @@ TEST(FServer, HighStrain)
             Pocket_Sys<MyPocket> pocket2;
             for (int i = 0; i < 50000; i++)
             {
-               
+
                 sock2->read_some(buffer(&pocket2, sizeof(Pocket_Sys <MyPocket>)));
 
                 //ASSERT_EQ(pocket._pocket_id, i + 1);
@@ -1794,7 +1795,7 @@ TEST(FServer, HighStrain)
             Pocket_Sys<MyPocket> pocket3;
             for (int i = 0; i < 50000; i++)
             {
-                
+
                 sock3->read_some(buffer(&pocket3, sizeof(Pocket_Sys <MyPocket>)));
 
                 //ASSERT_EQ(pocket._pocket_id, i + 1);
@@ -1825,7 +1826,133 @@ TEST(FServer, HighStrain)
 
 }
 
+
+TEST(FServer, ManySocketsSend)
+{
+    io_service ios;
+
+    FServer <MyPocket> fserver("127.0.0.1", 2001);
+
+    std::vector <socket_ptr> ptrs;
+
+    for (int i = 0; i < 100; i++)
+        ptrs.push_back(socket_ptr(new ip::tcp::socket(ios)));
+
+    ip::tcp::endpoint ep(ip::address::from_string("127.0.0.1"), 2001);
+
+    fserver.start();
+
+    for (int i = 0; i < 100; i++)
+    {
+        ptrs[i]->connect(ep);
+    }
+
+    //extra connect seconds
+    Sleep(1000);
+
+
+
+
+    Pocket_Sys<MyPocket> pocket;
+
+    pocket.is_command = false;
+
+    for (int i = 0; i < 100; i++)
+    {
+        if(i%2==0)
+        ptrs[i]->close();
+    }
+    Sleep(100);
+    fserver.refreshOnline();
+
+    auto list = fserver.getOnlineList();
+
+    for (int i = 0; i < 100; i++)
+    {
+        int id = -1;
+        for (auto& sock : ptrs)
+        {
+            id++;
+            if (id % 2 == 0) continue;
+            pocket.pocket.n = i + 1;
+            pocket._pocket_id = i + 1;
+            sock->write_some(buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
+        }
+    }
+
+    int sumin = 0;
+    std::pair<MyPocket, int> data;
+
+    for (int i = 0; i < 5000; i++)
+    {
+        fserver >> data;
+
+        auto& [pocket, fid] = data;
+
+        sumin += pocket.n;
+    }
+
+    ASSERT_EQ(sumin, 252'500);
+    ASSERT_EQ(list.size(), 50);
+}
+
+TEST(FServer, ManySocketsRecive)
+{
+    io_service ios;
+
+    FServer <MyPocket> fserver("127.0.0.1", 2001);
+
+    std::vector <socket_ptr> ptrs;
+
+    for (int i = 0; i < 100; i++)
+        ptrs.push_back(socket_ptr(new ip::tcp::socket(ios)));
+
+    ip::tcp::endpoint ep(ip::address::from_string("127.0.0.1"), 2001);
+
+    fserver.start();
+
+    for (int i = 0; i < 100; i++)
+    {
+        ptrs[i]->connect(ep);
+    }
+
+    //extra connect seconds
+    Sleep(1000);
+    bool is = true;
+
+    auto list = fserver.getOnlineList();
+
+    Pocket_Sys<MyPocket> pocket;
+
+    pocket.is_command = false;
+
+    MyPocket pock;
+
+
+    for (int i = 0; i < 10000; i++)
+    {
+
+        pock.n = i + 1;
+        fserver << Out{ pock ,FType::FID, i % 100 + 1 };
+
+    }
+    int sumin = 0;
+    for (int i = 0; i < 100; i++)
+    {
+
+        for (auto& sock : ptrs)
+        {
+            sock->read_some(buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
+            sumin += pocket.pocket.n;
+        }
+    }
+
+    ASSERT_EQ(sumin, 50'005'000);
+}
+
 #endif
+
+
 
 
 //using Out = _Out<MyPocket>;

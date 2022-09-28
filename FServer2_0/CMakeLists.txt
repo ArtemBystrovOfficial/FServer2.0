@@ -10,15 +10,19 @@ add_subdirectory(
     "lib/sgoogletest"
 )
 
-# Main target
 
 # Test target
-add_executable (tests_client "testing/tests_client.cpp" "source/Client/Client.cpp")
+add_executable (tests_client "testing/tests_client.cpp")
 add_executable (tests_server "testing/tests_server.cpp")
 
 target_link_libraries(
         tests_server
         PRIVATE libFS
+)
+
+target_link_libraries(
+        tests_client
+        PRIVATE libFC
 )
 
 # Link test target against gtest libraries
@@ -47,8 +51,18 @@ if (MSVC)
         tests_server PRIVATE
         /W4
     )
-    message("yes")
+
 else ()
+
+    #run time library fix google-test
+
+    if(WIN32)
+
+    set(CMAKE_CXX_FLAGS_RELEASE "/MT")
+    set(CMAKE_CXX_FLAGS_DEBUG "/MTd")
+
+    endif()
+
     target_compile_options(
         tests_client PRIVATE
         -Wall -Wextra -pedantic -Werror
@@ -57,6 +71,7 @@ else ()
         tests_server PRIVATE
         -Wall -Wextra -pedantic -Werror
     )
+    
 endif()
 
 
