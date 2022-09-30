@@ -8,8 +8,11 @@
 
 #include <algorithm>
 
-template <typename _Pocket>
-using basic_ptr = std::shared_ptr < BasicFServer <_Pocket > >;
+namespace rf
+{
+	template <typename _Pocket>
+	using basic_ptr = std::shared_ptr < BasicFServer <_Pocket > >;
+}
 
 #define FOREVER for(;;)
 
@@ -21,7 +24,7 @@ public:
 
 	ReciverFilter() = delete;
 
-	ReciverFilter(bufferIO_ptr<_Pocket> ptr, cv_ptr  waitget, basic_ptr <_Pocket> basic_server)
+	ReciverFilter(bufferIO_ptr<_Pocket> ptr, cv_ptr  waitget, rf::basic_ptr <_Pocket> basic_server)
 	{
 		this->waitget = waitget;
 		this->basic_server = basic_server;
@@ -36,7 +39,7 @@ public:
 
 private:
 
-	basic_ptr <_Pocket> basic_server;
+	rf::basic_ptr <_Pocket> basic_server;
 	cv_ptr waitget;
 	std::mutex mtx;
 	bufferIO_ptr <_Pocket> buffer_io;
@@ -57,7 +60,9 @@ std::pair <_Pocket, int> ReciverFilter<_Pocket>::recv()
 		if (basic_server->isExit())
 			break;
 
+
 		Pocket_Sys <_Pocket> pocket;
+
 		if (buffer_io->getFIn(pocket) != 0)
 		{
 			if (pocket.is_command)
@@ -72,17 +77,17 @@ std::pair <_Pocket, int> ReciverFilter<_Pocket>::recv()
 				//////////////////////////
 
 				/// Reserve for next updates
-
+				
 
 				switch (pocket.command)
 				{
-				case Pocket_Sys<_Pocket>::commands::CloseMe:
-				{
+					case Pocket_Sys<_Pocket>::commands::CloseMe:
+					{
 
-					std::cout << "TESTING CLOSEME: " << pocket.fid << std::endl;
-					// Reserve for next use
+						std::cout << "TESTING CLOSEME: " << pocket.fid << std::endl;
+						// Reserve for next use
 
-				}
+					}
 				break;
 
 				default:
@@ -94,7 +99,20 @@ std::pair <_Pocket, int> ReciverFilter<_Pocket>::recv()
 			}
 			else
 			{
-				// Pockets to user
+				// Pockets from user
+
+				if (!basic_server->isWorking())
+				{
+					pocket.is_command = true;
+
+					pocket.is_active = true;
+
+					pocket.command = Pocket_Sys<_Pocket>::commands::IsOff;
+
+					buffer_io->addOut(pocket);
+
+					continue;
+				}
 
 				return { pocket.pocket,pocket.fid };
 
@@ -108,7 +126,7 @@ class SenderFilter
 {
 public:
 
-	SenderFilter(bufferIO_ptr<_Pocket> buffer_io_ptr, basic_ptr<_Pocket> basic_ptr):
+	SenderFilter(bufferIO_ptr<_Pocket> buffer_io_ptr, rf::basic_ptr<_Pocket> basic_ptr):
 																buffer_io(buffer_io_ptr),
 																basic_fserver(basic_ptr)
 	{}
@@ -144,7 +162,7 @@ public:
 private:
 
 	bufferIO_ptr<_Pocket> buffer_io;
-	basic_ptr<_Pocket> basic_fserver;
+	rf::basic_ptr<_Pocket> basic_fserver;
 	std::map< int , std::vector <int> > groups;
 
 };

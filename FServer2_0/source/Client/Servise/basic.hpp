@@ -28,6 +28,7 @@ public:
 		, io_s(service)
 		, buffer_io(ptr)
 		, socket_closed(new std::atomic<bool>)
+		, empty(new std::atomic<bool>)
 	{
 		is_exit.store(false);
 		sender.start(buffer_io, wait_sender);
@@ -59,6 +60,17 @@ public:
 		return _current_connection.load();
 	}
 
+	bool isBanned()
+	{
+		return is_banned.load();
+	}
+
+	void _SetBanned()
+	{
+		is_banned.store(true);
+	}
+
+
 	~BasicFClient();
 private:
 	
@@ -74,10 +86,16 @@ private:
 	std::atomic <bool> is_connected;
 	bool_atc_ptr socket_closed;
 
+	//non anviliable there
+	bool_atc_ptr empty;
+
 	std::atomic <int> _current_connection{0}; // fid
+	std::atomic <bool> is_banned{false};
 
 	Sender <_Pocket> sender;
 	Reciver <_Pocket> * reciver;
+
+
 
 };
 
@@ -108,7 +126,11 @@ inline bool BasicFClient<_Pocket>::connect()
 		reciver = new Reciver <_Pocket>(server,
 			socket_closed,
 			buffer_io,
-			_current_connection.load());
+			_current_connection.load(),
+			empty		
+			);
+
+		is_banned.store( false );
 
 	}
 	else

@@ -5,17 +5,29 @@
 #include "../../Server/Servise/pocket.hpp"
 
 #include <algorithm>
+#include <chrono>
+
+using namespace std::chrono_literals;
 
 template <typename _Pocket>
 using basic_ptr = std::shared_ptr < BasicFClient <_Pocket > >;
 
 #define FOREVER for(;;)
 
+
+
 template <class _Pocket>
 class ReciverSingle
 {
 
 public:
+
+	enum class f_error
+	{
+		pause,
+		ban,
+		none
+	};
 
 	ReciverSingle() = delete;
 
@@ -30,7 +42,7 @@ public:
 	// Filter for server calls and users pockets // 
 	///////////////////////////////////////////////
 
-	_Pocket recv();
+	std::pair<_Pocket, f_error > recv();
 
 private:
 
@@ -42,19 +54,23 @@ private:
 };
 
 template <class _Pocket>
-_Pocket ReciverSingle<_Pocket>::recv()
+std::pair<_Pocket, typename ReciverSingle<_Pocket>::f_error > ReciverSingle<_Pocket>::recv()
 {
 
 	FOREVER
 	{
 		{
 			std::unique_lock <std::mutex> lock(mtx);
-			waitget->wait(lock, [&] { return !buffer_io->inIsEmpty() || basic_server->isExit();  });
+			waitget->wait(lock, [&] { return !buffer_io->inIsEmpty() || basic_server->isExit() || basic_server->isBanned(); });
 		}
 
+
+		
 		if (basic_server->isExit())
 			break;
 
+		if(basic_server->isBanned())
+			return { _Pocket{}, ReciverSingle<_Pocket>::f_error::ban};
 
 
 		Pocket_Sys <_Pocket> pocket;
@@ -83,9 +99,28 @@ _Pocket ReciverSingle<_Pocket>::recv()
 
 						//std::cout << "TESTING CLOSEME: " << pocket.fid << std::endl;
 						// Reserve for next use
+						// Safety exit with dump and statistic
+
 
 					}
 					break;
+
+					case Pocket_Sys<_Pocket>::commands::IsBan:
+					{
+
+						basic_server->_SetBanned();
+						basic_server->disconnect();
+
+						return { _Pocket{}, ReciverSingle<_Pocket>::f_error::ban };
+
+					}
+
+					case Pocket_Sys<_Pocket>::commands::IsOff:
+					{
+
+						return { _Pocket{}, ReciverSingle<_Pocket>::f_error::pause };
+
+					}
 
 					default:
 					{
@@ -96,8 +131,8 @@ _Pocket ReciverSingle<_Pocket>::recv()
 				}
 				else
 				{
-					// Pockets to user
-					return pocket.pocket;
+							// Pockets to user
+						return { pocket.pocket, ReciverSingle<_Pocket>::f_error::none };
 
 				}
 			}

@@ -38,6 +38,9 @@ public:
 	// return -1 Error
 	int addOut(const Pocket_Sys<_Pocket>&);
 
+	// return -1 Error
+	int addPremiumOut(const Pocket_Sys<_Pocket>&);
+
 	// none safety for thread be careful
 	bool outIsEmpty()
 	{
@@ -127,6 +130,19 @@ inline int BufferIO<_Pocket>::addOut(const Pocket_Sys<_Pocket>& pocket)
 	_lockOut.lock();
 
 	_out.push_back(pocket);
+
+	waitgetOut->notify_one();
+
+	_lockOut.unlock();
+
+	return 1;
+}
+template < class _Pocket>
+int BufferIO<_Pocket>::addPremiumOut(const Pocket_Sys<_Pocket>& pocket)
+{
+	_lockOut.lock();
+
+	_out.push_front(pocket);
 
 	waitgetOut->notify_one();
 

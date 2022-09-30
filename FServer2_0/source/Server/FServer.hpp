@@ -21,10 +21,13 @@
 
 //typedef std::shared_ptr<ip::tcp::socket> socket_ptr;
 
-template<class _Pocket>
+namespace fclient
+{
+	template<class _Pocket>
 	using rfilter_ptr = std::shared_ptr < ReciverFilter<_Pocket> >;
-template<class _Pocket>
+	template<class _Pocket>
 	using sfilter_ptr = std::shared_ptr < SenderFilter<_Pocket> >;
+}
 
 enum FType
 {
@@ -61,14 +64,15 @@ public:
 		w_reciver(new std::condition_variable),
 		io(new io_service)
 	{
-		buffer = bufferIO_ptr<_Pocket> (new BufferIO<_Pocket>(w_sender, w_reciver));
-		basic = basic_ptr<_Pocket> (new BasicFServer<_Pocket>(buffer, io, w_sender, ip, port)),
-		r_filter = rfilter_ptr <_Pocket> (new ReciverFilter<_Pocket>(buffer, w_reciver, basic));
-		s_filter = sfilter_ptr <_Pocket> (new SenderFilter<_Pocket>(buffer, basic));
+		buffer = std::make_shared<BufferIO<_Pocket>>(w_sender, w_reciver);
+		basic = std::make_shared<BasicFServer<_Pocket>>(buffer, io, w_sender, ip, port);
+		r_filter =  std::make_shared<ReciverFilter<_Pocket>>(buffer, w_reciver, basic);
+		s_filter =  std::make_shared<SenderFilter<_Pocket>>(buffer, basic);
 	}
 	~FServer() {
 	
 		basic->setExit();
+		w_reciver->notify_one();
 	
 	}
 	/////////////////////////
@@ -122,6 +126,12 @@ public:
 	std::vector<int> getOnlineList();
 				   // return last fid
 				int  getMaxFid();
+				   // return list Ip of online users
+	std::vector < std::pair  < int,std::string > >	
+				     getOnlineIpList();
+				   // return list of Banned Ip fid -> string(IP)
+std::set<std::string>getBanListIp();
+				   
 
 	/////////////////			
 	// server health
@@ -139,9 +149,11 @@ public:
 					// safety disconnect any fid
 				bool disconnect(int fid);
 					// ban by ip any fid
-				bool banIp(const std::string & ip);
+				void banIp(const std::string & ip);
 					// unban by ip any fid
 				bool unbanIp(const std::string& ip);
+					// return ip by fid if fid not online return ""
+				std::string getIpByFid(int fid);
 				
 private:
 
@@ -149,17 +161,20 @@ private:
 	// don't edit if you not developer this
 	///////////////////////////////////////
 
+
+
 	cv_ptr w_sender, w_reciver;
 
 	bufferIO_ptr<_Pocket> buffer;
 
 	service_ptr io;
 
-	basic_ptr<_Pocket> basic;
+	rf::basic_ptr<_Pocket> basic;
 
-	rfilter_ptr <_Pocket> r_filter;
+	fclient::rfilter_ptr <_Pocket> r_filter;
 
-	sfilter_ptr <_Pocket> s_filter;
+	fclient::sfilter_ptr <_Pocket> s_filter;
+
 
 };
 
@@ -172,7 +187,8 @@ void FServer<_Pocket>::start()
 template < class _Pocket >
 void  FServer<_Pocket>::stop()
 {
-	basic->_Off();
+	if(basic->isWorking())
+		basic->_Off();
 }
 
 //////////////////
@@ -298,13 +314,14 @@ void  FServer<_Pocket>::refreshOnline()
 template < class _Pocket >
 void  FServer<_Pocket>::setOptions(int opt)
 {
-	
+	// reserved
 }
 
 template < class _Pocket >
 bool  FServer<_Pocket>::isServerCrash()
 {
-
+	// reserved
+	return false;
 }
 
 //////////////////
@@ -314,17 +331,40 @@ bool  FServer<_Pocket>::isServerCrash()
 template < class _Pocket >
 bool  FServer<_Pocket>::disconnect(int fid)
 {
+
+	if (!basic->IsFidOnline(fid))
+		return false;
+
 	return basic->Disconnect(fid);
 }
 
 template < class _Pocket >
-bool  FServer<_Pocket>::banIp(const std::string& ip)
+void  FServer<_Pocket>::banIp(const std::string& ip)
 {
-	
+	basic->_Ban(ip);
 }
 
 template < class _Pocket >
 bool  FServer<_Pocket>::unbanIp(const std::string& ip)
 {
+	return basic->_UnBan(ip);
+}
 
+template < class _Pocket >
+std::set<std::string> FServer<_Pocket>::getBanListIp()
+{
+	return basic->GetListBan();
+}
+
+template < class _Pocket >
+std::vector < std::pair  < int, std::string > >
+FServer<_Pocket>::getOnlineIpList()
+{
+	return basic->listIpOnline();
+}
+
+template < class _Pocket >
+std::string FServer<_Pocket>::getIpByFid(int fid)
+{
+	return basic->getIpByFid(fid);
 }

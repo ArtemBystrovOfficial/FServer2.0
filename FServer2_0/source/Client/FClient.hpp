@@ -6,6 +6,8 @@
 #include "Servise/basic.hpp"
 #include "Servise/filter_io.hpp"
 
+#include <fstream>
+
 /*
 #define ASIO_STANDALONE 
 #define ASIO_HAS_STD_ADDRESSOF
@@ -37,14 +39,15 @@ public:
 		w_reciver(new std::condition_variable),
 		io(new io_service)
 	{
-		buffer = bufferIO_ptr<_Pocket>(new BufferIO<_Pocket>(w_sender, w_reciver));
-		basic = basic_ptr<_Pocket>(new BasicFClient<_Pocket>(buffer, io, w_sender, ip, port)),
-		r_filter = rfilter_ptr <_Pocket>(new ReciverSingle<_Pocket>(buffer, w_reciver, basic));
-		s_filter = sfilter_ptr <_Pocket>(new SenderSingle<_Pocket>(buffer, basic));
+		buffer = std::make_shared<BufferIO<_Pocket>>(w_sender, w_reciver);
+		basic = std::make_shared<BasicFClient<_Pocket>>(buffer, io, w_sender, ip, port);
+		r_filter =  std::make_shared<ReciverSingle<_Pocket>>(buffer, w_reciver, basic);
+		s_filter =  std::make_shared<SenderSingle<_Pocket>>(buffer, basic);
 	}
 	~FClient() {
 
 		basic->setExit();
+		w_reciver->notify_one();
 
 	}
 
@@ -66,7 +69,7 @@ public:
 			friend FClient<_Pocket>& operator << (FClient<_Pocket>& fserver, const _Pocket &);
 				// new very easy variant to send your pockets in one stroke with a lot of options, read documentations
 			template < class _Pocket >
-			friend FClient<_Pocket>& operator >> (FClient<_Pocket>& fserver, _Pocket&);
+			friend FClient<_Pocket>& operator >> (FClient<_Pocket>& fserver, std::pair <_Pocket, typename ReciverSingle<_Pocket>::f_error> &);
 
 	/////////////////
 	// client status
@@ -127,7 +130,7 @@ bool FClient<_Pocket>::isConnected()
 template < class _Pocket >
 bool FClient<_Pocket>::isBanned()
 {
-	
+	return basic->isBanned();
 }
 
 template < class _Pocket >
@@ -144,7 +147,7 @@ FClient<_Pocket>& operator << (FClient<_Pocket>& fserver, const _Pocket& pocket)
 }
 
 template < class _Pocket >
-FClient<_Pocket>& operator >> (FClient<_Pocket>& fserver, _Pocket& pocket)
+FClient<_Pocket>& operator >> (FClient<_Pocket>& fserver, std::pair <_Pocket, typename ReciverSingle<_Pocket>::f_error> & pocket)
 {
 	pocket = fserver.r_filter->recv();
 	return fserver;

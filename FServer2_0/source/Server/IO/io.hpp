@@ -43,7 +43,10 @@ public:
 	Reciver() = delete;
 
 	// start Reciver when contruction
-	Reciver(socket_ptr ptr, bool_atc_ptr socket_close_status, bufferIO_ptr<_Pocket>,int fid );
+	Reciver(socket_ptr ptr,
+	bool_atc_ptr socket_close_status,
+	bufferIO_ptr<_Pocket>, int fid,
+	bool_atc_ptr new_diconnect);
 
 	//return 0 if socket close and recived is safety closed
 	//return -1 if socket doesn't closed and close does'nt safery
@@ -70,6 +73,7 @@ private:
 	std::thread _run;
 	std::atomic<bool> is_ext;
 	bool_atc_ptr _is_socket_closed;
+	bool_atc_ptr new_diconnect;
 
 	// system of right pocket tcp connect
 	std::vector<Pocket_Sys<_Pocket>> _pockets_queue;
@@ -78,11 +82,13 @@ private:
 };
 
 template<class _Pocket>
-Reciver<_Pocket>::Reciver(socket_ptr ptr, bool_atc_ptr socket_close_status, bufferIO_ptr<_Pocket> buffer_io,int fid) : sock(ptr),
+Reciver<_Pocket>::Reciver(socket_ptr ptr, bool_atc_ptr socket_close_status, bufferIO_ptr<_Pocket> buffer_io,int fid, bool_atc_ptr new_diconnect) : sock(ptr),
 																			  _is_socket_closed(socket_close_status),
 																			  _current_pocket_id(1),
 																			  buffer_io(buffer_io),
-																			  fid(fid)
+																			  fid(fid),
+																			  new_diconnect(new_diconnect)
+																			  
 {
 	if (socket_close_status.get() == nullptr)
 		throw std::exception("nullptr on socket closed check - > Reciver");
@@ -102,6 +108,8 @@ void Reciver<_Pocket>::recive_from()
 
 	while (!is_ext.load())
 	{
+		pocket.is_active = false;
+
 		sock->read_some(asio::buffer(&pocket, sizeof(Pocket_Sys<_Pocket>)), ec);
 
 		//if sock not connected now, its okay this parametr skip this and wait for that
@@ -109,10 +117,13 @@ void Reciver<_Pocket>::recive_from()
 			continue;
 
 		//If socket closed
-		if (ec == error::eof || is_ext.load())
+		if (ec == error::eof || is_ext.load() || !pocket.is_active)
 		{
 			if (ec == error::eof)
+			{
+				new_diconnect->store(true);
 				_is_socket_closed->store(true);
+			}
 			break;
 		}
 
@@ -125,7 +136,6 @@ void Reciver<_Pocket>::recive_from()
 			//extra safe all _pocked_id start with 1
 			if(pocket._pocket_id < max_count_pockets && pocket._pocket_id > 0 && pocket.extra_test == 777 )
 			{ 
-
 
 /////////////////////////////////////////////////////
 // system of wait pockets which comes not at his place
@@ -202,7 +212,8 @@ int Reciver<_Pocket>::ext()
 
 	is_ext.store(true);
 
-	_run.join();
+	if(_run.joinable())
+		_run.join();
 
 	return 0;
 }
@@ -215,8 +226,10 @@ Reciver<_Pocket>::~Reciver()
 		sock->close();
 		_is_socket_closed->store(true);
 		is_ext.store(true);
-		_run.join();	
 	}
+
+	if(_run.joinable())
+		_run.join();	
 }
 
 /////////////////
@@ -381,11 +394,14 @@ void Sender<_Pocket>::send_to()
 
 
 #ifndef DEBUG_SENDER
+
+		pocket.is_active = true;
+
 		sock->write_some(asio::buffer(&pocket, sizeof(Pocket_Sys<_Pocket>)),ec);
 		if (ec)
 			continue;
 #else
-		std::cout << pocket.pocket << " " << pocket.fid << " " << pocket._pocket_id << std::endl;
+		std::cout << pocket.pocket.n << " " << pocket.fid << " " << pocket._pocket_id << std::endl;
 #endif
 
 	}
@@ -401,8 +417,8 @@ void Sender<_Pocket>::ext()
 	is_ext.store(true);
 
 	waitget->notify_one();
-
-	_run.join();
+	if(_run.joinable())
+		_run.join();
 }
 
 template<class _Pocket>

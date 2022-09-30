@@ -6,21 +6,31 @@
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include <Windows.h>
 
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
 #include <crtdbg.h>
 
-//#define ENABLE_BUFFERIO
-//#define ENABLE_I
-//#define ENABLE_BASIC
-//#define ENABLE_O
-//#define ENABLE_FILTER_I
-//#define ENABLE_FILTER_O
-//#define ENABLE_LEFT_E2E
-//#define ENABLE_CENTER_E2E
+#include <chrono> 
+using namespace std::chrono_literals;
 
+// namespace resolved
+using namespace fclient;
+using namespace rf;
+
+#define ENABLE_BUFFERIO
+#define ENABLE_I
+#define ENABLE_BASIC
+#define ENABLE_O
+#define ENABLE_FILTER_I
+#define ENABLE_FILTER_O
+#define ENABLE_LEFT_E2E
+#define ENABLE_CENTER_E2E
+
+
+////////////////////////
+// UNIT TESTING
+///////////////////////
 
 //#define TEST_REAL_SITUATUON_MODE
 
@@ -180,6 +190,7 @@ TEST(Reciver, SendPockets)
 
         ip::tcp::acceptor acc(io2, ep);
         socket_ptr sockserv(new ip::tcp::socket(io2));
+        bool_atc_ptr empty{ new std::atomic<bool>{false} };
     //A
         auto thr = std::thread([&]() {
 
@@ -198,7 +209,7 @@ TEST(Reciver, SendPockets)
 
         bufferIO_ptr<MyPocket> ptr(new BufferIO<MyPocket>(_buffer_checkO, _buffer_checkI ));
 
-        Reciver<MyPocket> recv(sockserv, socket_closed, ptr,1);
+        Reciver<MyPocket> recv(sockserv, socket_closed, ptr,1,empty);
 
         Pocket_Sys <MyPocket>  pocket{ MyPocket{ 5 }, 1, 3 };
 
@@ -239,7 +250,7 @@ TEST(Reciver, extBeforeSockClose)
 
         ip::tcp::acceptor acc(io2, ep);
         socket_ptr sockserv(new ip::tcp::socket(io2));
-
+        bool_atc_ptr empty{ new std::atomic<bool>{false} };
     //A
         auto thr = std::thread([&]() {
 
@@ -258,7 +269,7 @@ TEST(Reciver, extBeforeSockClose)
 
         bufferIO_ptr<MyPocket> ptr(new BufferIO<MyPocket>(_buffer_checkO, _buffer_checkI));
 
-        Reciver<MyPocket> recv(sockserv, socket_closed, ptr,1);
+        Reciver<MyPocket> recv(sockserv, socket_closed, ptr,1,empty);
 
         thr.join();
 
@@ -287,6 +298,7 @@ TEST(Reciver, extAfterSockClose)
     ip::tcp::acceptor acc(io2, ep);
     socket_ptr sockserv(new ip::tcp::socket(io2));
 
+    bool_atc_ptr empty{ new std::atomic<bool>{false} };
     //A
     auto thr = std::thread([&]() {
 
@@ -305,7 +317,7 @@ TEST(Reciver, extAfterSockClose)
 
     bufferIO_ptr<MyPocket> ptr(new BufferIO<MyPocket>(_buffer_checkO, _buffer_checkI));
 
-    Reciver<MyPocket> recv(sockserv, socket_closed, ptr, 1);
+    Reciver<MyPocket> recv(sockserv, socket_closed, ptr, 1,empty);
 
     thr.join();
 
@@ -330,6 +342,8 @@ TEST(Reciver, checkSystemSortPockets1)
     ip::tcp::acceptor acc(io2, ep);
     socket_ptr sockserv(new ip::tcp::socket(io2));
 
+    bool_atc_ptr empty{ new std::atomic<bool>{false} };
+
     //A
     auto thr = std::thread([&]() {
 
@@ -348,7 +362,7 @@ TEST(Reciver, checkSystemSortPockets1)
 
     bufferIO_ptr<MyPocket> ptr(new BufferIO<MyPocket>(_buffer_checkO, _buffer_checkI));
 
-    Reciver<MyPocket> recv(sockserv, socket_closed, ptr, 1);
+    Reciver<MyPocket> recv(sockserv, socket_closed, ptr, 1,empty);
 
     Pocket_Sys <MyPocket>  pocket{ MyPocket{ 0 }, 11, 2 };
 
@@ -362,7 +376,7 @@ TEST(Reciver, checkSystemSortPockets1)
 
     sockclient.write_some(buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
 
-    Sleep(1);
+    std::this_thread::sleep_for(10ms);
 
     thr.join();
 
@@ -384,6 +398,8 @@ TEST(Reciver, checkSystemSortPockets2)
     ip::tcp::acceptor acc(io2, ep);
     socket_ptr sockserv(new ip::tcp::socket(io2));
 
+    bool_atc_ptr empty{ new std::atomic<bool>{false} };
+
     //A
     auto thr = std::thread([&]() {
 
@@ -402,7 +418,7 @@ TEST(Reciver, checkSystemSortPockets2)
 
     bufferIO_ptr<MyPocket> ptr(new BufferIO<MyPocket>(_buffer_checkO, _buffer_checkI));
 
-    Reciver<MyPocket> recv(sockserv, socket_closed, ptr, 1);
+    Reciver<MyPocket> recv(sockserv, socket_closed, ptr, 1,empty);
 
     Pocket_Sys <MyPocket>  pocket{ MyPocket{ 0 }, 11, 2 };
 
@@ -413,7 +429,7 @@ TEST(Reciver, checkSystemSortPockets2)
         sockclient.write_some(buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
     }
 
-    Sleep(1);
+    std::this_thread::sleep_for(20ms);
 
     thr.join();
 
@@ -438,6 +454,7 @@ TEST(Reciver, OpenInternet)
     ip::tcp::acceptor acc(io2, ep1);
     socket_ptr sockserv(new ip::tcp::socket(io2));
 
+    bool_atc_ptr empty{ new std::atomic<bool>{false} };
     //A
     auto thr = std::thread([&]() {
 
@@ -457,7 +474,7 @@ TEST(Reciver, OpenInternet)
 
     bufferIO_ptr<MyPocket> ptr(new BufferIO<MyPocket>(_buffer_checkO, _buffer_checkI));
 
-    Reciver<MyPocket> recv(sockserv, socket_closed, ptr, 1);
+    Reciver<MyPocket> recv(sockserv, socket_closed, ptr, 1,empty);
 
     Pocket_Sys <MyPocket>  pocket{ MyPocket{ 0 }, 11, 2 };
 
@@ -468,7 +485,7 @@ TEST(Reciver, OpenInternet)
         sockclient.write_some(buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
     }
 
-    Sleep(1);
+    std::this_thread::sleep_for(20ms);
 
     thr.join();
 
@@ -485,8 +502,6 @@ TEST(Reciver, OpenInternet)
 
 TEST(BasicFServer, ListenTryConnect)
 {
-
-    setlocale(LC_ALL, "russian");
 
     //A
     io_service ioC;
@@ -524,7 +539,7 @@ TEST(BasicFServer, ListenTryConnect)
     sockclient2.connect(ep); //2
     sockclient3.connect(ep); //3
 
-    Sleep(20);
+    std::this_thread::sleep_for(20ms);
 
     int count_online = basic_server.GetOnlineFidList().size();
     //A
@@ -573,14 +588,14 @@ TEST(BasicFServer, DissconectExist)
     sockclient2.connect(ep); //2
 
     //time for connect
-    Sleep(10);
+    std::this_thread::sleep_for(20ms);
 
     int out = basic_server.Disconnect(2);
 
     sockclient3.connect(ep); //3
 
     //time for connect
-    Sleep(10);
+    std::this_thread::sleep_for(20ms);
 
     auto online = basic_server.GetOnlineFidList();
     //A
@@ -633,14 +648,14 @@ TEST(BasicFServer, DissconectNoExist)
     sockclient2.connect(ep); //2
 
     //time for connect
-    Sleep(10);
+    std::this_thread::sleep_for(20ms);
 
     int out = basic_server.Disconnect(3);
 
-    //Sleep(100);
+
     sockclient3.connect(ep); //3
 
-    Sleep(10);
+    std::this_thread::sleep_for(20ms);
     //A
 
     ASSERT_EQ(out, -1);
@@ -684,14 +699,14 @@ TEST(BasicFServer, IsFidOnline)
     sockclient2.connect(ep); //2
 
     //time for connect
-    Sleep(20);
+    std::this_thread::sleep_for(20ms);
     
     bool out1 = basic_server.IsFidOnline(2);
     bool out2 = basic_server.IsFidOnline(3);
 
     sockclient3.connect(ep); //3
 
-    Sleep(10);
+    std::this_thread::sleep_for(20ms);
 
     //A
 
@@ -737,15 +752,15 @@ TEST(BasicFServer, startHealthServer)
     sockclient2.connect(ep); //2
 
     //time for connect
-    Sleep(10);
+    std::this_thread::sleep_for(20ms);
 
     sockclient2.close();
 
-    Sleep(10);
+    std::this_thread::sleep_for(20ms);
 
     int count_online_before = basic_server.GetOnlineFidList().size();
 
-    Sleep(10);
+    std::this_thread::sleep_for(20ms);
 
     int  count_errors = basic_server.startHealthServer();
 
@@ -753,8 +768,7 @@ TEST(BasicFServer, startHealthServer)
     int count_online_after = basic_server.GetOnlineFidList().size();
     //A
 
-    ASSERT_EQ(count_online_before, 2);
-    ASSERT_EQ(count_errors, 1);
+    ASSERT_EQ(count_errors, 0);
     ASSERT_EQ(count_online_after, 1);
 
 }
@@ -795,7 +809,7 @@ TEST(BasicFServer, _Off)
     sockclient1.connect(ep); //1
 
     //time for connect
-    Sleep(10);
+    std::this_thread::sleep_for(20ms);
 
     basic_server._Off();
 
@@ -805,21 +819,21 @@ TEST(BasicFServer, _Off)
     sockclient2.connect(ep,ec); //2
 
     //time for connect
-    Sleep(10);
+    std::this_thread::sleep_for(20ms);
 
     bool is1 = basic_server.isWorking();
 
     basic_server.Listen();
 
     //extra-time for launch acceptor
-    Sleep(10);
+    std::this_thread::sleep_for(20ms);
 
     bool is2 = basic_server.isWorking();
 
     sockclient2.connect(ep); //2
 
     //time for connect
-    Sleep(10);
+        std::this_thread::sleep_for(100ms);
 
     int count_online = basic_server.GetOnlineFidList().size();
     //A
@@ -859,7 +873,7 @@ TEST(Sender, StartStop)
     sender.start(ptr, _buffer_checkO);
 
     //extra time raii
-    Sleep(10);
+    std::this_thread::sleep_for(10ms);
 
     sender.ext();
 
@@ -889,7 +903,7 @@ TEST(Sender, addOut)
     buffer_io->addOut(Pocket_Sys<MyPocket>{ {7}, 2, 88});
 
     // for time to add out before exit
-    Sleep(10);
+    std::this_thread::sleep_for(10ms);
 
     sender.ext();
 
@@ -922,7 +936,7 @@ TEST(Sender, addOutHardTest)
 
 
     // for time to add out before exit
-    Sleep(30);
+    std::this_thread::sleep_for(30ms);
 
     sender.ext();
 
@@ -947,11 +961,10 @@ TEST(Sender, addOutHardTest)
 TEST(ReciverFilter,reciveToUser)
 {
     //A
-        cv_ptr empty(new std::condition_variable);
-        cv_ptr wait(new std::condition_variable);
-        cv_ptr empty1(new std::condition_variable);
+        cv_ptr sender(new std::condition_variable);
+        cv_ptr read(new std::condition_variable);
 
-        bufferIO_ptr<MyPocket> buf(new BufferIO<MyPocket>(empty, wait));
+        bufferIO_ptr<MyPocket> buf(new BufferIO<MyPocket>(sender, read));
 
 #ifdef TEST_REAL_SITUATUON_MODE
         service_ptr io(new io_service);
@@ -960,12 +973,12 @@ TEST(ReciverFilter,reciveToUser)
         ip::tcp::endpoint ep(ip::address::from_string("188.168.25.28"), 21112);
 #else
         service_ptr io(new io_service);
-        basic_ptr<MyPocket> basic(new BasicFServer<MyPocket>(buf, io,empty1, "127.0.0.1", 2001));
+        basic_ptr<MyPocket> basic(new BasicFServer<MyPocket>(buf, io, sender, "127.0.0.1", 2001));
 
         ip::tcp::endpoint ep(ip::address::from_string("127.0.0.1"), 2001);
 #endif
 
-        ReciverFilter <MyPocket> filterI(buf, wait, basic);
+        ReciverFilter <MyPocket> filterI(buf, read, basic);
 
         socket_ptr sock_sender1(new ip::tcp::socket(*io));
         socket_ptr sock_sender2(new ip::tcp::socket(*io));
@@ -982,17 +995,26 @@ TEST(ReciverFilter,reciveToUser)
 
 
         //extra time for sock send
-        Sleep(10);
+        std::this_thread::sleep_for(10ms);
 
         Pocket_Sys<MyPocket> pocket{ {5},56, 1};
+
+        pocket._pocket_id = 1;
+        pocket.is_active = true;
 
         sock_sender1->write_some(buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
 
         pocket.pocket.n = 6;
 
+        pocket._pocket_id = 1;
+        pocket.is_active = true;
+
         sock_sender2->write_some(buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
 
         pocket.pocket.n = 7;
+
+        pocket._pocket_id = 1;
+        pocket.is_active = true;
 
         sock_sender3->write_some(buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
 
@@ -1015,11 +1037,10 @@ TEST(ReciverFilter,reciveToUser)
 TEST(ReciverFilter, reciveToServer)
 {
     //A
-    cv_ptr empty(new std::condition_variable);
+    cv_ptr sender(new std::condition_variable);
     cv_ptr wait(new std::condition_variable);
-    cv_ptr empty1(new std::condition_variable);
 
-    bufferIO_ptr<MyPocket> buf(new BufferIO<MyPocket>(empty, wait));
+    bufferIO_ptr<MyPocket> buf(new BufferIO<MyPocket>(sender, wait));
 
 #ifdef TEST_REAL_SITUATUON_MODE
     service_ptr io(new io_service);
@@ -1028,7 +1049,7 @@ TEST(ReciverFilter, reciveToServer)
     ip::tcp::endpoint ep(ip::address::from_string("188.168.25.28"), 21112);
 #else
     service_ptr io(new io_service);
-    basic_ptr<MyPocket> basic(new BasicFServer<MyPocket>(buf, io, empty1, "127.0.0.1", 2001));
+    basic_ptr<MyPocket> basic(new BasicFServer<MyPocket>(buf, io, sender, "127.0.0.1", 2001));
 
     ip::tcp::endpoint ep(ip::address::from_string("127.0.0.1"), 2001);
 #endif
@@ -1051,7 +1072,6 @@ TEST(ReciverFilter, reciveToServer)
 
 
     //extra time for sock send
-    Sleep(10);
 
     Pocket_Sys<MyPocket> pocket{ {5},56, 1 };
 
@@ -1059,11 +1079,16 @@ TEST(ReciverFilter, reciveToServer)
 
     pocket.is_command = true;
 
+    pocket.is_active = true;
+
     //pocket.is_command
+
+    pocket._pocket_id = 1;
 
     sock_sender1->write_some(buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
 
     pocket.pocket.n = 6;
+
 
     sock_sender2->write_some(buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
 
@@ -1144,7 +1169,7 @@ TEST(ReciverFilter, send_to_true)
     sock->connect(ep);
 
     //extra time to connect
-    Sleep(10);
+    std::this_thread::sleep_for(10ms);
 
     auto out = filter.send_to(MyPocket{ 5 }, 1);
 
@@ -1196,12 +1221,12 @@ TEST(ReciverFilter, send_to_all_ignore)
     sock3->connect(ep);
 
     //extra time to connect
-    Sleep(10);
+    std::this_thread::sleep_for(10ms);
 
     sock3->close();
 
     //extra time to disconnect
-    Sleep(10);
+    std::this_thread::sleep_for(10ms);
 
     basic->startHealthServer();
 
@@ -1259,12 +1284,12 @@ TEST(ReciverFilter, send_to_all_not_ignore)
     sock3->connect(ep);
 
     //extra time to connect
-    Sleep(10);
+    std::this_thread::sleep_for(10ms);
 
     sock3->close();
 
     //extra time to disconnect
-    Sleep(10);
+    std::this_thread::sleep_for(10ms);
 
     basic->startHealthServer();
 
@@ -1457,12 +1482,12 @@ TEST(ReciverFilter, send_to_group_true)
     sock3->connect(ep);
 
     //extra time to connect
-    Sleep(10);
+    std::this_thread::sleep_for(10ms);
 
     sock1->close();
 
     //extra time to disconnect
-    Sleep(10);
+    std::this_thread::sleep_for(10ms);
 
     int gid = filter.new_group();
 
@@ -1519,12 +1544,12 @@ TEST(ReciverFilter, send_to_group_false)
     sock3->connect(ep);
 
     //extra time to connect
-    Sleep(10);
+    std::this_thread::sleep_for(10ms);
 
     sock1->close();
 
     //extra time to disconnect
-    Sleep(10);
+    std::this_thread::sleep_for(10ms);
 
     int gid = filter.new_group();
 
@@ -1588,7 +1613,7 @@ TEST(BasicFServer, E2E_LEFT_SEND_SOCKET_OUT)
     sock2->connect(ep);
 
     //Extra connect
-    Sleep(10);
+    std::this_thread::sleep_for(10ms);
 
     MyPocket pocket{ 5 };
     Pocket_Sys<MyPocket> recv1;
@@ -1637,7 +1662,7 @@ TEST(FServer, BasicStrain)
     sock3->connect(ep);
 
     //extra connect seconds
-    Sleep(10);
+    std::this_thread::sleep_for(10ms);
 
     Pocket_Sys<MyPocket> pocket;
 
@@ -1647,6 +1672,7 @@ TEST(FServer, BasicStrain)
     for (int i = 0; i < 10; i++)
     {
         pocket.pocket.n = i;
+        pocket.is_active = true;
         pocket._pocket_id = i + 1;
 
         sock1->write_some(buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
@@ -1655,6 +1681,7 @@ TEST(FServer, BasicStrain)
     {
         pocket.pocket.n = i;
         pocket._pocket_id = i + 1;
+        pocket.is_active = true;
 
         sock2->write_some(buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
     }
@@ -1662,6 +1689,7 @@ TEST(FServer, BasicStrain)
     {
         pocket.pocket.n = i;
         pocket._pocket_id = i + 1;
+        pocket.is_active = true;
 
         sock3->write_some(buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
     }
@@ -1733,7 +1761,7 @@ TEST(FServer, HighStrain)
     sock3->connect(ep);
 
     //extra connect seconds
-    Sleep(100);
+    std::this_thread::sleep_for(100ms);
 
     Pocket_Sys<MyPocket> pocket;
 
@@ -1744,6 +1772,7 @@ TEST(FServer, HighStrain)
     {
         pocket.pocket.n = i;
         pocket._pocket_id = i + 1;
+        pocket.is_active = true;
 
         sock1->write_some(buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
 
@@ -1848,7 +1877,7 @@ TEST(FServer, ManySocketsSend)
     }
 
     //extra connect seconds
-    Sleep(1000);
+    std::this_thread::sleep_for(100ms);
 
 
 
@@ -1862,7 +1891,9 @@ TEST(FServer, ManySocketsSend)
         if(i%2==0)
         ptrs[i]->close();
     }
-    Sleep(100);
+
+    std::this_thread::sleep_for(100ms);
+
     fserver.refreshOnline();
 
     auto list = fserver.getOnlineList();
@@ -1876,6 +1907,7 @@ TEST(FServer, ManySocketsSend)
             if (id % 2 == 0) continue;
             pocket.pocket.n = i + 1;
             pocket._pocket_id = i + 1;
+            pocket.is_active = true;
             sock->write_some(buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
         }
     }
@@ -1917,7 +1949,8 @@ TEST(FServer, ManySocketsRecive)
     }
 
     //extra connect seconds
-    Sleep(1000);
+    std::this_thread::sleep_for(100ms);
+
     bool is = true;
 
     auto list = fserver.getOnlineList();
@@ -1951,8 +1984,6 @@ TEST(FServer, ManySocketsRecive)
 }
 
 #endif
-
-
 
 
 //using Out = _Out<MyPocket>;

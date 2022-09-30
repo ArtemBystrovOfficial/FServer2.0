@@ -6,12 +6,16 @@
 #include <map>
 #include <utility>
 
+#include <chrono>
+using namespace std::chrono_literals;
+
 
 #include "../IO/buffer.hpp"
 #include "../IO/io.hpp"
 
 #include "pocket.hpp"
 #include <string>
+#include <set>
 
 using namespace asio;
 typedef std::shared_ptr<ip::tcp::socket> socket_ptr;
@@ -36,17 +40,21 @@ struct User_Session
 
 	User_Session(
 		bool_atc_ptr bool_ptr,
+		bool_atc_ptr new_diconnect,
 		socket_ptr sock_ptr,
 		bufferIO_ptr <_Pocket> buffer_io,
-		int fid
-	) : reciver(sock_ptr,bool_ptr,buffer_io,fid),
+		int fid,
+		const std::string & ip
+	) : reciver(sock_ptr,bool_ptr,buffer_io,fid, new_diconnect),
 		socket(sock_ptr),
-		socket_closed(bool_ptr)
+		socket_closed(bool_ptr),
+		ip(ip)
 	{}
 
 	bool_atc_ptr socket_closed{ new std::atomic <bool>{ false } };
 	socket_ptr socket;
 	Reciver<_Pocket> reciver;
+	std::string ip;
 };
 
 template<class _Pocket>
@@ -88,6 +96,27 @@ public:
 	// {1...inf} some problems, count of cleaning pockets -> all okay
 	int startHealthServer();
 
+	std::string getIpByFid(int fid)
+	{
+		startHealthServer();
+
+		_block_map_users.lock();
+
+		auto it = users.find(fid);
+
+		if (it == users.end())
+		{
+			_block_map_users.unlock();
+			return "";
+		}
+
+		auto str = it->second.ip;
+
+		_block_map_users.unlock();
+
+		return str;
+	}
+
 	// Safety stop listening
 	void _Off();
 
@@ -110,6 +139,61 @@ public:
 
 	// don't use socket->close() use this function for safe
 	static int _close_socket(socket_ptr, bool_atc_ptr);
+
+	void _Ban(const std::string & ip)
+	{
+		_block_ban_list.lock();
+
+		BanList.insert(ip);
+
+		_block_ban_list.unlock();
+	}
+
+	bool _UnBan(const std::string& ip)
+	{
+		_block_ban_list.lock();
+
+		bool is = BanList.erase(ip);
+
+		_block_ban_list.unlock();
+
+		return is;
+	}
+
+	auto GetListBan()
+	{
+		_block_ban_list.lock();
+
+		auto list = BanList;
+
+		_block_ban_list.unlock();
+
+		return list;
+	}
+
+	std::vector<std::pair<int, std::string> > listIpOnline()
+	{
+		startHealthServer();
+
+		int i = 0;
+
+		_block_map_users.lock();
+
+		std::vector<std::pair<int,std::string> > list(users.size());
+
+		for (auto& it : users)
+		{
+			list[i].first = it.first;
+			list[i].second = it.second.ip;
+			i++;
+		}
+
+		_block_map_users.unlock();
+
+		return list;
+	}
+
+
 
 private:
 
@@ -147,6 +231,12 @@ private:
 	//Sender Part
 	Sender <_Pocket> sender;
 
+	std::set <std::string> BanList;
+
+	std::mutex _block_ban_list;
+
+	bool_atc_ptr new_diconnect{ new std::atomic <bool>{ false } };
+
 };
 
 template<class _Pocket>
@@ -156,6 +246,10 @@ inline void BasicFServer<_Pocket>::Listen()
 	_listen_run = std::thread([&]() {
 		_listenner();
 	});
+
+	// wait for connection
+	while(!is_working.load())
+		std::this_thread::sleep_for(1ms);
 }
 
 // thread function of connect listenner
@@ -167,24 +261,61 @@ void BasicFServer<_Pocket>::_listenner()
 	static int is_first = 0;
 	if (!is_first)
 	{
-		acceptor = std::shared_ptr<ip::tcp::acceptor>(new ip::tcp::acceptor(*io_s, ep));
+		acceptor = std::make_shared<ip::tcp::acceptor>(*io_s, ep);
 	}
 
 	is_working.store(true);
 
-	while (is_working.load())
+	do
 	{
 		//Pre-settings
 		error_code ec;
 
 		socket_ptr sock(new ip::tcp::socket(*io_s));
-		bool_atc_ptr check_connect_closed(new std::atomic<bool>);
+		bool_atc_ptr check_connect_closed (new std::atomic<bool>);
 		check_connect_closed->store(false);
 
 		acceptor->accept(*sock,ec);
 
 		if (!is_working.load())
-					break;
+			break;
+
+		_block_ban_list.lock();
+
+		auto ip = sock->remote_endpoint().address().to_string();
+
+		auto it  = BanList.find(ip);
+
+		if (it != BanList.end())
+		{
+			sender._addNewFidSocket(current_free_fid, sock);
+
+			Pocket_Sys<_Pocket> pocket;
+
+			pocket.is_active = true;
+			pocket.is_command = true;
+			pocket.command = Pocket_Sys<_Pocket>::commands::IsBan;
+			pocket.fid = current_free_fid;
+
+
+			// out first
+
+			buffer_io->addPremiumOut(pocket);
+
+			//extrasafe
+			std::this_thread::sleep_for(10ms);
+
+			sock->close();
+
+			_block_ban_list.unlock();
+
+			++current_free_fid;
+
+			continue;
+
+		}
+
+		_block_ban_list.unlock();
 
 ///////////////////////////
 // ADD BLOCK OF MANAGE USERS
@@ -194,7 +325,7 @@ void BasicFServer<_Pocket>::_listenner()
 
 		users.emplace(std::piecewise_construct,
 			std::forward_as_tuple(current_free_fid),
-			std::forward_as_tuple(check_connect_closed, sock, buffer_io,current_free_fid));
+			std::forward_as_tuple(check_connect_closed, new_diconnect, sock, buffer_io,current_free_fid,ip));
 
 		sender._addNewFidSocket(current_free_fid, sock);
 
@@ -207,7 +338,7 @@ void BasicFServer<_Pocket>::_listenner()
 //////////////////////////
 			
 		++current_free_fid;
-	}
+	} while (is_working.load());
 
 	is_working.store(false);
 }
@@ -252,6 +383,8 @@ inline std::vector<int> BasicFServer<_Pocket>::GetOnlineFidList()
 {
 	// optimazation return rule of 3
 
+	startHealthServer();
+
 	int i = 0;
 
 	_block_map_users.lock();
@@ -272,6 +405,9 @@ inline std::vector<int> BasicFServer<_Pocket>::GetOnlineFidList()
 template<class _Pocket>
 inline bool BasicFServer<_Pocket>::IsFidOnline(int fid)
 {
+
+	startHealthServer();
+
 	_block_map_users.lock();
 
 	const auto it = users.find(fid);
@@ -295,6 +431,9 @@ inline int BasicFServer<_Pocket>::startHealthServer()
 {
 
 	int count_errors = 0;
+
+	if (!new_diconnect->load())
+		return 0;
 
 	_block_map_users.lock();
 
@@ -327,6 +466,8 @@ inline int BasicFServer<_Pocket>::startHealthServer()
 		}
 	}
 
+	new_diconnect->store(false);
+
 	_block_map_users.unlock();
 
 	return count_errors;
@@ -338,8 +479,8 @@ inline void BasicFServer<_Pocket>::_Off()
 	is_working.store(false);
 
 	acceptor->close();
-
-	_listen_run.join();
+	if(_listen_run.joinable())
+		_listen_run.join();
 }
 
 template<class _Pocket>
@@ -373,8 +514,8 @@ inline BasicFServer<_Pocket>::~BasicFServer()
 		is_working.store(false);
 
 		acceptor->close();
-
-		_listen_run.join();
+		if(_listen_run.joinable())
+			_listen_run.join();
 	}
 
 }

@@ -11,15 +11,24 @@ using namespace asio;
 #include <stdlib.h>
 #include <crtdbg.h>
 
-//#define ENABLE_BASIC
-//#define ENABLE_FILTER_I
-//#define ENABLE_FILTER_0
+////////////////////////
+// UNIT TESTING
+///////////////////////
+
+#include <chrono> 
+using namespace std::chrono_literals;
+
+#define ENABLE_BASIC
+#define ENABLE_FILTER_I
+#define ENABLE_FILTER_0
 #define ENABLE_CENTER_E2E
 
 struct MyPocket
 {
     int n;
 };
+
+using fec = ReciverSingle<MyPocket>::f_error;
 
 #ifdef ENABLE_BASIC
 
@@ -219,7 +228,7 @@ TEST(BasicFClient, StartHealthClient)
 
     sock1->close();
 
-    Sleep(10);
+    std::this_thread::sleep_for(20ms);
 
     bool is1 = server.startHealthClient();
 
@@ -267,7 +276,7 @@ TEST(ReciverSingle, Recv)
     th.join();
     //extra time for sock send
 
-    Sleep(10);
+    std::this_thread::sleep_for(20ms);
 
     Pocket_Sys<MyPocket> pocket;
 
@@ -277,13 +286,14 @@ TEST(ReciverSingle, Recv)
     {
         pocket._pocket_id = i + 1;
         pocket.pocket.n = i + 1;
+        pocket.is_active = true;
         sock1->write_some(asio::buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
     }
 
     int sum = 0;
     for (int i = 0; i < 100; i++)
     {
-        sum+=reciverfilter.recv().n;
+        sum+=reciverfilter.recv().first.n;
     }
 
     ASSERT_EQ(sum, 5050);
@@ -321,7 +331,7 @@ TEST(ReciverSingle, Recv2Socks)
     th.join();
     //extra time for sock send
 
-    Sleep(10);
+    std::this_thread::sleep_for(20ms);
 
     Pocket_Sys<MyPocket> pocket;
 
@@ -331,13 +341,14 @@ TEST(ReciverSingle, Recv2Socks)
     {
         pocket._pocket_id = i + 1;
         pocket.pocket.n = i + 1;
+        pocket.is_active = true;
         sock1->write_some(asio::buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
     }
 
     int sum = 0;
     for (int i = 0; i < 100; i++)
     {
-        sum += reciverfilter.recv().n;
+        sum += reciverfilter.recv().first.n;
     }
 
     server->disconnect();
@@ -353,7 +364,7 @@ TEST(ReciverSingle, Recv2Socks)
     th2.join();
     //extra time for sock send
 
-    Sleep(10);
+    std::this_thread::sleep_for(20ms);
 
     pocket.is_command = false;
 
@@ -361,12 +372,13 @@ TEST(ReciverSingle, Recv2Socks)
     {
         pocket._pocket_id = i + 1;
         pocket.pocket.n = i + 1;
+        pocket.is_active = true;
         sock2->write_some(asio::buffer(&pocket, sizeof(Pocket_Sys <MyPocket>)));
     }
 
     for (int i = 0; i < 100; i++)
     {
-        sum += reciverfilter.recv().n;
+        sum += reciverfilter.recv().first.n;
     }
     //A    
     ASSERT_EQ(sum, 10100);
@@ -407,7 +419,7 @@ TEST(SenderSingle, send_to)
     th.join();
     //extra time for sock send
 
-    Sleep(10);
+    std::this_thread::sleep_for(20ms);
 
     for (int i = 0; i < 100; i++)
     {
@@ -468,7 +480,7 @@ TEST(SenderSingle, send_to_double)
     th.join();
     //extra time for sock send
 
-    Sleep(10);
+    std::this_thread::sleep_for(20ms);
 
     for (int i = 0; i < 100; i++)
     {
@@ -504,7 +516,7 @@ TEST(SenderSingle, send_to_double)
 
     th2.join();
 
-    Sleep(10);
+    std::this_thread::sleep_for(20ms);
 
     for (int i = 0; i < 100; i++)
     {
@@ -555,7 +567,7 @@ TEST(FClient, BasicStrain)
 
     th.join();
 
-    Sleep(10);
+    std::this_thread::sleep_for(20ms);
 
     Pocket_Sys<MyPocket> pocket;
 
@@ -563,16 +575,17 @@ TEST(FClient, BasicStrain)
     {
         pocket.pocket.n = i + 1;
         pocket._pocket_id = 100 - i;
+        pocket.is_active = true;
         sock1->write_some(asio::buffer(&pocket, sizeof(Pocket_Sys<MyPocket>)));
     }
 
-    MyPocket pock;
+   std::pair < MyPocket, fec > pock;
     int sum = 0;
     for (int i = 0; i < 100; i++)
     {
         fclient >> pock;
-        pock.n *= 2;
-        fclient << pock;
+        pock.first.n *= 2;
+        fclient << pock.first;
     }
 
     for (int i = 0; i < 100; i++)
@@ -612,7 +625,7 @@ TEST(FClient, Basic2Strain)
 
     th.join();
 
-    Sleep(10);
+    std::this_thread::sleep_for(20ms);
 
     Pocket_Sys<MyPocket> pocket;
 
@@ -620,16 +633,17 @@ TEST(FClient, Basic2Strain)
     {
         pocket.pocket.n = i + 1;
         pocket._pocket_id = 100 - i;
+        pocket.is_active = true;
         sock1->write_some(asio::buffer(&pocket, sizeof(Pocket_Sys<MyPocket>)));
     }
 
-    MyPocket pock;
+    std::pair < MyPocket, fec > pock;
     int sum = 0;
     for (int i = 0; i < 100; i++)
     {
         fclient >> pock;
-        pock.n *= 2;
-        fclient << pock;
+        pock.first.n *= 2;
+        fclient << pock.first;
     }
 
     for (int i = 0; i < 100; i++)
@@ -651,12 +665,13 @@ TEST(FClient, Basic2Strain)
 
     th2.join();
 
-    Sleep(10);
+    std::this_thread::sleep_for(20ms);
 
     for (int i = 0; i < 100; i++)
     {
         pocket.pocket.n = i + 1;
         pocket._pocket_id = i + 1;
+        pocket.is_active = true;
         sock2->write_some(asio::buffer(&pocket, sizeof(Pocket_Sys<MyPocket>)));
     }
 
@@ -664,8 +679,8 @@ TEST(FClient, Basic2Strain)
     for (int i = 0; i < 100; i++)
     {
         fclient >> pock;
-        pock.n *= 2;
-        fclient << pock;
+        pock.first.n *= 2;
+        fclient << pock.first;
     }
 
     for (int i = 0; i < 100; i++)

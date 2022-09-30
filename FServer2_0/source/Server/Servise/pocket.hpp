@@ -18,10 +18,14 @@ struct Pocket_Sys
 	enum class commands
 	{
 		CloseMe,
-		RefreshMe
+		IsBan,
+		IsOff
 	};
 
 	commands command;
+
+	//extra test for disconnect
+	bool is_active = false;
 
 	template <typename _Pocket>
 	friend bool operator<(const Pocket_Sys& pock1, const Pocket_Sys& pock2);
