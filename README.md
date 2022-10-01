@@ -65,10 +65,12 @@ Library use ASIO and googletest.
 	//	operators
 	/////////////////
 	
-	    // new very easy variant to send your pockets in one stroke with a lot of options, read documentations
+	        // new very easy variant to send your pockets in one stroke with a lot of options,
+	        // read documentations
 	template < class _Pock >
 	friend FServer<_Pock>& operator << (FServer<_Pock>& fserver, const _Out<_Pock>& out);
-		// new very easy variant to send your pockets in one stroke with a lot of options, read documentations
+		// new very easy variant to send your pockets in one stroke with a lot of options,
+		//read documentations
 	template < class _Pock >
 	friend FServer<_Pock>& operator >> (FServer<_Pock>& fserver, std::pair<_Pock,int> & in);
 
@@ -148,10 +150,12 @@ _____
 	//	operators
 	/////////////////
 
-				// new very easy variant to send your pockets in one stroke with a lot of options, read documentations
+				// new very easy variant to send your pockets in one stroke with a lot of options,
+				// read documentations
 			template < class _Pock >
 			friend FClient<_Pock>& operator << (FClient<_Pock>& fserver, const _Pock &);
-				// new very easy variant to send your pockets in one stroke with a lot of options, read documentations
+				// new very easy variant to send your pockets in one stroke with a lot of options,
+				// read documentations
 			template < class _Pock >
 			friend FClient<_Pock>& operator >> 
       (FClient<_Pock>& fserver, std::pair <_Pock, typename ReciverSingle<_Pock>::f_error> &);
@@ -206,6 +210,10 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build/bin)
   - :file_folder: [Example 1 (Easy classic server with reg)](https://drive.google.com/drive/folders/1oQyTh73ImCRDRsXq-KhkqRJYRacEwZ3Y?usp=sharing)
   - :file_folder: [Example 2 (Work with files)](https://drive.google.com/drive/folders/1j_NFBW2qQFidXhFTgdaZ7HtJpGm6oNiK?usp=sharing)
   - :file_folder: [Example 3 (Work with HTTP)](https://drive.google.com/drive/folders/1cRHKnJTdg3zkKcDWph3qbWwQp9RB-_c4?usp=sharing)
+## Cheme
+
+![plan](https://user-images.githubusercontent.com/92841151/193421180-cd62006d-728a-485f-b5d0-bd137113d293.png)
+
 ## Feedback
 :email: bystrov.official.one@gmail.com
 
