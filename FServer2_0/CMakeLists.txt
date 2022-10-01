@@ -10,11 +10,28 @@ add_subdirectory(
     "lib/sgoogletest"
 )
 
-# Main target
 
 # Test target
-add_executable (tests_client "testing/tests_client.cpp" "source/Client/Client.cpp")
-add_executable (tests_server "testing/tests_server.cpp" "source/Server/Server.cpp")
+add_executable (tests_client "testing/tests_client.cpp")
+add_executable (tests_server "testing/tests_server.cpp")
+add_executable (tests_connection "testing/tests_connection.cpp")
+
+target_link_libraries(
+        tests_server
+        PRIVATE libFS
+)
+
+
+target_link_libraries(
+        tests_client
+        PRIVATE libFC
+)
+
+target_link_libraries(
+    tests_connection 
+        PRIVATE libFS libFC
+)
+
 
 # Link test target against gtest libraries
 target_link_libraries(
@@ -29,6 +46,13 @@ target_link_libraries(
     gmock gmock_main
 )
 
+target_link_libraries(
+    tests_connection PRIVATE
+    gtest gtest_main
+    gmock gmock_main
+)
+
+
 if (MSVC)
     # @see https://github.com/google/googletest/blob/master/googletest/README.md
     # Visual Studio Dynamic vs Static Runtimes
@@ -42,15 +66,35 @@ if (MSVC)
         tests_server PRIVATE
         /W4
     )
+    target_compile_options(
+        tests_connection PRIVATE
+        /W4
+    )
+
 else ()
+
+    #run time library fix google-test
+
+    if(WIN32)
+
+    set(CMAKE_CXX_FLAGS_RELEASE "/MT")
+    set(CMAKE_CXX_FLAGS_DEBUG "/MTd")
+
+    endif()
+
     target_compile_options(
         tests_client PRIVATE
-        -Wall -Wextra -pedantic -Werror
+        -Wall -Wextra -pedantic 
     )
     target_compile_options(
         tests_server PRIVATE
-        -Wall -Wextra -pedantic -Werror
+        -Wall -Wextra -pedantic 
     )
+    target_compile_options(
+        tests_connection PRIVATE
+        -Wall -Wextra -pedantic 
+    )
+    
 endif()
 
 
