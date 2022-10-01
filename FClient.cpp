@@ -3,6 +3,9 @@
 #include "POCKET.h"
 #include <iostream>
 
+
+using fec = ReciverSingle<Pocket>::f_error;
+
 int main(int argc ,char ** argv)
 {
 	
@@ -12,7 +15,7 @@ int main(int argc ,char ** argv)
 
 	int mode = 0;
 
-	Pocket pocket;
+	std::pair<Pocket,fec> pocket;
 
 	std::string msg, login, password;
 
@@ -36,11 +39,11 @@ int main(int argc ,char ** argv)
 			cl << Pocket(Pocket::Command::Login, "", login, password);
 			cl >> pocket;
 
-			switch (pocket.command)
+			switch (pocket.first.command)
 			{
 			case(Pocket::Command::Error):
 			{
-				std::cout << "Error: " << pocket.msg << std::endl;
+				std::cout << "Error: " << pocket.first.msg << std::endl;
 			} break;
 			case(Pocket::Command::Ok):
 			{
@@ -54,14 +57,27 @@ int main(int argc ,char ** argv)
 
 					while (cl.isConnected())
 					{
-						cl >> pocket_in;
+						cl >> pocket;
 
-						switch (pocket_in.command)
+						if (pocket.second == fec::ban)
+						{
+							std::cout << "your are banned\n";
+							cl.disconect();
+							exit(0);
+						}
+
+						if (pocket.second == fec::pause)
+						{
+							std::cout << "Server restart wait\n";
+							continue;
+						}
+
+						switch (pocket.first.command)
 						{
 						case(Pocket::Command::Msg):
 						{
 							if (cl.isConnected())
-								std::cout << pocket_in.msg << std::endl;
+								std::cout << pocket.first.msg << std::endl;
 						}
 						}
 					}
@@ -95,16 +111,16 @@ int main(int argc ,char ** argv)
 			cl << Pocket(Pocket::Command::Register, "", login, password);
 			cl >> pocket;
 
-			switch (pocket.command)
+			switch (pocket.first.command)
 			{
-			case(Pocket::Command::Error):
-			{
-				std::cout << "Error: " << pocket.msg << std::endl;
-			} break;
-			case(Pocket::Command::Ok):
-			{
-				std::cout << "Registered" << std::endl;
-			} break;
+				case(Pocket::Command::Error):
+				{
+					std::cout << "Error: " << pocket.first.msg << std::endl;
+				} break;
+				case(Pocket::Command::Ok):
+				{
+					std::cout << "Registered" << std::endl;
+				} break;
 			}
 		}
 	}
