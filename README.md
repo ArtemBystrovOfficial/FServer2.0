@@ -114,7 +114,8 @@ std::set<std::string>getBanListIp();
 	/////////////////			
 	// server health
 	/////////////////
-				   // refresh all sockets who closed not by safety exit ( Recomended to use sometimes )
+				   // refresh all sockets who closed not by safety exit
+				   // ( Recomended to use sometimes )
 				void refreshOnline();
 				   // reserve to next versions
 				void setOptions(int opt);
@@ -150,12 +151,12 @@ _____
 	//	operators
 	/////////////////
 
-				// new very easy variant to send your pockets in one stroke with a lot of options,
-				// read documentations
+				// new very easy variant to send your pockets in one stroke with
+				// a lot of options, read documentations
 			template < class _Pock >
 			friend FClient<_Pock>& operator << (FClient<_Pock>& fserver, const _Pock &);
-				// new very easy variant to send your pockets in one stroke with a lot of options,
-				// read documentations
+				// new very easy variant to send your pockets in one stroke with
+				// a lot of options, read documentations
 			template < class _Pock >
 			friend FClient<_Pock>& operator >> 
       (FClient<_Pock>& fserver, std::pair <_Pock, typename ReciverSingle<_Pock>::f_error> &);
