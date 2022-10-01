@@ -40,7 +40,7 @@ template < class _Pocket >
 struct _Out
 {
 
-	_Pocket & pocket;
+	const _Pocket & pocket;
 
 	FType type;
 	
@@ -90,11 +90,11 @@ public:
 	/////////////////
 	
 	    // new very easy variant to send your pockets in one stroke with a lot of options, read documentations
-	template < class _Pocket >
-	friend FServer<_Pocket>& operator << (FServer<_Pocket>& fserver, const _Out<_Pocket>& out);
+	template < class _Pock >
+	friend FServer<_Pock>& operator << (FServer<_Pock>& fserver, const _Out<_Pock>& out);
 		// new very easy variant to send your pockets in one stroke with a lot of options, read documentations
-	template < class _Pocket >
-	friend FServer<_Pocket>& operator >> (FServer<_Pocket>& fserver, std::pair<_Pocket,int> & in);
+	template < class _Pock >
+	friend FServer<_Pock>& operator >> (FServer<_Pock>& fserver, std::pair<_Pock,int> & in);
 
 	/////////////////
 	//	groups	
@@ -221,7 +221,9 @@ FServer<_Pocket> & operator << (FServer<_Pocket>& fserver, const _Out<_Pocket>& 
 template < class _Pocket >
 FServer<_Pocket>& operator >> (FServer<_Pocket>& fserver, std::pair<_Pocket, int> & in)
 {
-	auto [pocket,fid] =  fserver.r_filter->recv();
+	auto pock =  fserver.r_filter->recv();
+	auto & pocket = pock.first;
+	auto & fid = pock.second;
 	in.first = pocket;
 	in.second = fid;
 

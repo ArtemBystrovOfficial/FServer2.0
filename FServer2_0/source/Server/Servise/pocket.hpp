@@ -27,8 +27,8 @@ struct Pocket_Sys
 	//extra test for disconnect
 	bool is_active = false;
 
-	template <typename _Pocket>
-	friend bool operator<(const Pocket_Sys& pock1, const Pocket_Sys& pock2);
+	template <typename _Pock>
+	friend bool operator<(const Pocket_Sys<_Pock>& pock1, const Pocket_Sys<_Pock>& pock2);
 };
 
 template <typename _Pocket>

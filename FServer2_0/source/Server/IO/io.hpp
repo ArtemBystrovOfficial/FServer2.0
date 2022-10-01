@@ -91,7 +91,7 @@ Reciver<_Pocket>::Reciver(socket_ptr ptr, bool_atc_ptr socket_close_status, buff
 																			  
 {
 	if (socket_close_status.get() == nullptr)
-		throw std::exception("nullptr on socket closed check - > Reciver");
+		exit(0);
 	_run = std::thread([&]() {
 
 		recive_from();

@@ -84,7 +84,6 @@ std::pair <_Pocket, int> ReciverFilter<_Pocket>::recv()
 					case Pocket_Sys<_Pocket>::commands::CloseMe:
 					{
 
-						std::cout << "TESTING CLOSEME: " << pocket.fid << std::endl;
 						// Reserve for next use
 
 					}

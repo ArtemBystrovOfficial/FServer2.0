@@ -18,7 +18,7 @@ int main(int argc ,char ** argv)
 	std::pair<Pocket,fec> pocket;
 
 	std::string msg, login, password;
-
+        auto [a,b] = pocket;
 	while (cl.isConnected())
 	{
 		std::cout << "0 - for Reg, 1 - for Login" << std::endl;
@@ -27,10 +27,6 @@ int main(int argc ,char ** argv)
 		std::cin >> login;
 		std::cout << "Password:\n";
 		std::cin >> password;
-
-
-		if (login.size() > 254 || password.size() > 254)
-			throw std::exception("Login or pasword so long");
 
 		if (mode)
 		{//Login
@@ -48,7 +44,6 @@ int main(int argc ,char ** argv)
 			case(Pocket::Command::Ok):
 			{
 				std::cout << "Accept. Welcome\n";
-				Sleep(1000);
 				system("cls");
 
 				std::thread send([&]() {

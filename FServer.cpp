@@ -1,7 +1,6 @@
 //#include "Client.hpp"
 #include "FServer.hpp"
 #include "POCKET.h"
-#include <Windows.h>
 
 #include <iostream>
 
@@ -27,7 +26,8 @@ int main(int argc ,char ** argv)
 	{
 		sv >> data;
 
-		auto [pocket, fid] = data;
+		auto & pocket = data.first;
+		auto fid = data.second;
 
 		switch (pocket.command)
 		{

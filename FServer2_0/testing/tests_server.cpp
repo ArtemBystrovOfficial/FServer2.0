@@ -2,14 +2,14 @@
 #include "../source/Server/IO/io.hpp"
 #include "../source/Server/Servise/basic.hpp"
 #include "../source/Server/Servise/filter_io.hpp"
-#include "../source/Server/Fserver.hpp"
+#include "../source/Server/FServer.hpp"
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
-#define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
-#include <crtdbg.h>
+//#define _CRTDBG_MAP_ALLOC
+//#include <stdlib.h>
+//#include <crtdbg.h>
 
 #include <chrono> 
 using namespace std::chrono_literals;
@@ -1992,7 +1992,7 @@ int main(int argc,char** argv)
 {
 
     // check memory leaks
-    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+    //_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
     testing::InitGoogleTest(&argc, argv);
 

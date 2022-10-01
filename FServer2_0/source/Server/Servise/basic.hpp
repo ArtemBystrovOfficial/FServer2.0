@@ -366,8 +366,6 @@ inline int BasicFServer<_Pocket>::Disconnect(int fid)
 	if (reciver.ext() == -1)
 	{
 		// error
-		std::cout << " EXTRA ERROR DISCONECT BASICFSERVER USE _CLOSE_SOCKET\n";
-		throw std::exception("bad ext");
 	}
 
 	//delete connect from map
@@ -502,7 +500,6 @@ inline BasicFServer<_Pocket>::~BasicFServer()
 		if (reciver.ext())
 		{
 			// error
-			std::cout << " EXTRA ERROR DESTRUCTOR BASICFSERVER USE _CLOSE_SOCKET\n";
 		}
 	}
 

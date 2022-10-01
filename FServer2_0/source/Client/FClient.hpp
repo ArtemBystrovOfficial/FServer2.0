@@ -65,11 +65,11 @@ public:
 	/////////////////
 
 				// new very easy variant to send your pockets in one stroke with a lot of options, read documentations
-			template < class _Pocket >
-			friend FClient<_Pocket>& operator << (FClient<_Pocket>& fserver, const _Pocket &);
+			template < class _Pock >
+			friend FClient<_Pock>& operator << (FClient<_Pock>& fserver, const _Pock &);
 				// new very easy variant to send your pockets in one stroke with a lot of options, read documentations
-			template < class _Pocket >
-			friend FClient<_Pocket>& operator >> (FClient<_Pocket>& fserver, std::pair <_Pocket, typename ReciverSingle<_Pocket>::f_error> &);
+			template < class _Pock >
+			friend FClient<_Pock>& operator >> (FClient<_Pock>& fserver, std::pair <_Pock, typename ReciverSingle<_Pock>::f_error> &);
 
 	/////////////////
 	// client status

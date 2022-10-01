@@ -84,15 +84,15 @@ else ()
 
     target_compile_options(
         tests_client PRIVATE
-        -Wall -Wextra -pedantic -Werror
+        -Wall -Wextra -pedantic 
     )
     target_compile_options(
         tests_server PRIVATE
-        -Wall -Wextra -pedantic -Werror
+        -Wall -Wextra -pedantic 
     )
     target_compile_options(
         tests_connection PRIVATE
-        -Wall -Wextra -pedantic -Werror
+        -Wall -Wextra -pedantic 
     )
     
 endif()
