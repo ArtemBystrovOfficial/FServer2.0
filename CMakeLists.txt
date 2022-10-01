@@ -6,8 +6,6 @@ include_directories("FServer2_0/libs/asio-1.24.0/include")
 
 
 
-
-add_compile_options( -Wno-reorder  )
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
