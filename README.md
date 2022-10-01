@@ -213,7 +213,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build/bin)
   - :file_folder: [Example 3 (Work with HTTP)](https://drive.google.com/drive/folders/1cRHKnJTdg3zkKcDWph3qbWwQp9RB-_c4?usp=sharing)
 ## Cheme
 
-<img src="https://user-images.githubusercontent.com/92841151/193421180-cd62006d-728a-485f-b5d0-bd137113d293.png" style="border-radius:10%"/>
+<img src="https://user-images.githubusercontent.com/92841151/193421180-cd62006d-728a-485f-b5d0-bd137113d293.png" style="border-radius:15px"/>
 
 ## Feedback
 :email: bystrov.official.one@gmail.com
