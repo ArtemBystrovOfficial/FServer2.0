@@ -119,7 +119,7 @@ void Reciver<_Pocket>::recive_from()
 		//If socket closed
 		if (ec == error::eof || is_ext.load() || !pocket.is_active)
 		{
-			if (ec == error::eof || || !pocket.is_active)
+			if (ec == error::eof || !pocket.is_active)
 			{
 				new_diconnect->store(true);
 				_is_socket_closed->store(true);
