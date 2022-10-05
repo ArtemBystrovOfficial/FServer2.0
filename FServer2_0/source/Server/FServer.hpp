@@ -146,6 +146,8 @@ std::set<std::string>getBanListIp();
 	//////////////////
 	//server commands
 	//////////////////
+					// ENABLE / OFF LOG OUT
+				void switchLog();
 					// safety disconnect any fid
 				bool disconnect(int fid);
 					// ban by ip any fid
@@ -177,6 +179,13 @@ private:
 
 
 };
+
+
+template < class _Pocket >
+void FServer<_Pocket>::switchLog()
+{
+	basic->SwitchLog();
+}
 
 template < class _Pocket >
 void FServer<_Pocket>::start()
