@@ -73,7 +73,8 @@ public:
 	
 		basic->setExit();
 		w_reciver->notify_one();
-	
+		std::this_thread::sleep_for(10ms);
+
 	}
 	/////////////////////////
 	// start and stop listen
