@@ -125,6 +125,8 @@ std::set<std::string>getBanListIp();
 	//////////////////
 	//server commands
 	//////////////////
+					// ENABLE / OFF log information
+				void switchLogs()
 					// safety disconnect any fid
 				bool disconnect(int fid);
 					// ban by ip any fid
