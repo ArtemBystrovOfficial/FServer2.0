@@ -22,7 +22,15 @@ using namespace std::chrono_literals;
 struct MyPocket
 {
     int n;
+    friend std::string& operator+= (std::string& str, const MyPocket& pock);
 };
+
+std::string& operator+= (std::string& str, const MyPocket& pock)
+{
+
+    return str;
+}
+
 
 using fec = ReciverSingle<MyPocket>::f_error;
 

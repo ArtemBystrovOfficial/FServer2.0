@@ -73,6 +73,7 @@ public:
 		, io_s(service)
 		, buffer_io(ptr)
 	{
+		acceptor = std::make_shared<ip::tcp::acceptor>(*io_s, ep);
 		is_exit.store(false);
 		sender.setInformation(_log_information);
 		sender.start(buffer_io,wait_sender);
@@ -262,12 +263,6 @@ inline void BasicFServer<_Pocket>::Listen()
 template<class _Pocket>
 void BasicFServer<_Pocket>::_listenner()
 {
-
-	static int is_first = 0;
-	if (!is_first)
-	{
-		acceptor = std::make_shared<ip::tcp::acceptor>(*io_s, ep);
-	}
 
 	is_working.store(true);
 
@@ -494,11 +489,16 @@ inline void BasicFServer<_Pocket>::_Off()
 {
 	is_working.store(false);
 
-	std::this_thread::sleep_for(10ms);
+	// call exit acceptor
+	ip::tcp::socket sock(*io_s);
 
-	acceptor->close();
+	sock.connect(ep);
+
 	if(_listen_run.joinable())
 		_listen_run.join();
+
+	sock.close();
+
 }
 
 template<class _Pocket>
@@ -528,11 +528,7 @@ inline BasicFServer<_Pocket>::~BasicFServer()
 
 	if (is_working.load())
 	{
-		is_working.store(false);
-
-		acceptor->close();
-		if(_listen_run.joinable())
-			_listen_run.join();
+		_Off();
 	}
 
 }

@@ -39,13 +39,13 @@ using namespace rf;
 struct MyPocket
 {
     int n;
-    friend std::ostream& operator<< (std::ostream& os, const MyPocket& pock);
+    friend std::string& operator+= (std::string& str, const MyPocket& pock);
 };
 
-std::ostream& operator<< (std::ostream& os, const MyPocket& pock)
+std::string & operator+= (std::string& str, const MyPocket& pock)
 {
-    os << pock.n;
-    return os;
+
+    return str;
 }
 
 #ifdef ENABLE_BUFFERIO
@@ -220,7 +220,7 @@ TEST(Reciver, SendPockets)
         //io1.run();
     //A
         std::cout << "IN OF POCKET TEST\n";
-        std::cout << "fid, pocket_id, pocket " << pocket.fid << " " << pocket._pocket_id << " " << pocket.pocket << "\n"; // use operator std::cout << pocket in tests
+        //std::cout << "fid, pocket_id, pocket " << pocket.fid << " " << pocket._pocket_id << " " << pocket.pocket << "\n"; // use operator std::cout << pocket in tests
         std::cout << "-----------------\n";
 
 
@@ -830,7 +830,7 @@ TEST(BasicFServer, _Off)
 
     bool is2 = basic_server.isWorking();
 
-    sockclient2.connect(ep); //2
+    sockclient3.connect(ep); //3
 
     //time for connect
         std::this_thread::sleep_for(100ms);
@@ -840,7 +840,7 @@ TEST(BasicFServer, _Off)
 
     ASSERT_EQ(is1, false);
     ASSERT_EQ(is2, true);
-    ASSERT_EQ(count_online, 2);
+    ASSERT_EQ(count_online, 3);
 
 }
 
