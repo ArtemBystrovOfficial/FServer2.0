@@ -28,4 +28,11 @@ struct Pocket
 	char login[32];
 	char password[32];
 
+	friend std::string& operator+= (std::string& str, const Pocket& pock);
 };
+
+std::string& operator+= (std::string& str, const Pocket& pock)
+{
+
+	return str;
+}
