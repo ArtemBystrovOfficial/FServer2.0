@@ -158,9 +158,24 @@ void Reciver<_Pocket>::recive_from()
 
 
 					if (_log_information->load())
-						std::cout << "[IO]: recive from " << pocket.fid <<
-						"is_command: " << pocket.is_command << " " << typeid(pocket.pocket).name()
-						<< " { " << pocket.pocket << " } " <<sizeof(_Pocket) <<" bytes\n";
+					{
+						//sinhronization;
+
+						std::string _cache = "[IO]: >> recive from ";
+						_cache += std::to_string(pocket.fid);
+						_cache += " is_command: ";
+						_cache += std::to_string(pocket.is_command);
+						_cache += typeid(pocket.pocket).name();
+						_cache += " { ";
+						_cache += pocket.pocket;
+						_cache += " } ";
+						_cache += std::to_string(sizeof(_Pocket));
+						_cache += " bytes\n";
+
+						//out
+
+						std::cout << _cache;
+					}
 
 
 					if (!_pockets_queue.empty())
@@ -177,15 +192,29 @@ void Reciver<_Pocket>::recive_from()
 									is_be = true;
 #ifdef TEST_CON2
 									std::cout << "number of pocket: " << it->_pocket_id << "fid: " << it->fid << "\n";
-#endif	
+#endif
 									// add pocket to bufferIO
 									buffer_io->addIn(*it);
 
 
 									if (_log_information->load())
-										std::cout << "[IO]: recive from " << pocket.fid <<
-										"is_command: " << pocket.is_command << " " << typeid(pocket.pocket).name()
-										<< " { " << pocket.pocket << " } " << sizeof(_Pocket) << " bytes\n";
+									{
+										//sinhronization;
+
+										std::string _cache = "[IO]: >> recive [queued] from ";
+										_cache += std::to_string(pocket.fid);
+										_cache += " is_command: ";
+										_cache += std::to_string(pocket.is_command);
+										_cache += typeid(pocket.pocket).name();
+										_cache += " { ";
+										_cache += pocket.pocket;
+										_cache += " } ";
+										_cache += std::to_string(sizeof(_Pocket));
+										_cache += " bytes\n";
+
+										//out
+										std::cout << _cache;
+									}
 
 
 									_pockets_queue.erase(it);
@@ -427,9 +456,23 @@ void Sender<_Pocket>::send_to()
 			continue;
 
 		if (_log_information->load())
-			std::cout << "[IO]: send to " << pocket.fid <<
-			"is_command: " << pocket.is_command << " " << typeid(pocket.pocket).name()
-			<< " { " << pocket.pocket << " } " << sizeof(_Pocket) << " bytes\n";
+		{
+			//sinhronization;
+
+			std::string _cache = "[IO]: << send to ";
+			_cache += std::to_string(pocket.fid);
+			_cache += " is_command: ";
+			_cache += std::to_string(pocket.is_command);
+			_cache += typeid(pocket.pocket).name();
+			_cache += " { ";
+			_cache += pocket.pocket;
+			_cache += " } ";
+			_cache += std::to_string(sizeof(_Pocket));
+			_cache += " bytes\n";
+
+			//out
+			std::cout << _cache;
+		}
 
 #else
 		std::cout << pocket.pocket.n << " " << pocket.fid << " " << pocket._pocket_id << std::endl;
