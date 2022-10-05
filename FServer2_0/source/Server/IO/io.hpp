@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <map>
 #include <condition_variable>
-
+#include <iostream>
 
 const uint64_t max_count_pockets = 63'072'000'000; // 20 pocket / sec for 100 years
 
@@ -57,6 +57,11 @@ public:
 		return !is_ext.load();
 	}
 
+	void setInformation(bool_atc_ptr _log_information)
+	{
+		this->_log_information = _log_information;
+	}
+
 	//if you dont use ext() try make this for us, but close socket(Bad idea)
 	~Reciver();
 
@@ -74,6 +79,7 @@ private:
 	std::atomic<bool> is_ext;
 	bool_atc_ptr _is_socket_closed;
 	bool_atc_ptr new_diconnect;
+	bool_atc_ptr _log_information;
 
 	// system of right pocket tcp connect
 	std::vector<Pocket_Sys<_Pocket>> _pockets_queue;
@@ -150,6 +156,13 @@ void Reciver<_Pocket>::recive_from()
 					// add pocket to bufferIO
 					buffer_io->addIn(pocket);
 
+
+					if (_log_information->load())
+						std::cout << "[IO]: recive from " << pocket.fid <<
+						"is_command: " << pocket.is_command << " " << typeid(pocket.pocket).name()
+						<< " { " << pocket.pocket << " } " <<sizeof(_Pocket) <<" bytes\n";
+
+
 					if (!_pockets_queue.empty())
 					{
 						std::sort(_pockets_queue.begin(), _pockets_queue.end());
@@ -167,6 +180,13 @@ void Reciver<_Pocket>::recive_from()
 #endif	
 									// add pocket to bufferIO
 									buffer_io->addIn(*it);
+
+
+									if (_log_information->load())
+										std::cout << "[IO]: recive from " << pocket.fid <<
+										"is_command: " << pocket.is_command << " " << typeid(pocket.pocket).name()
+										<< " { " << pocket.pocket << " } " << sizeof(_Pocket) << " bytes\n";
+
 
 									_pockets_queue.erase(it);
 									++_current_pocket_id;
@@ -260,6 +280,10 @@ public:
 	//if you dont use ext() try make this for us, but close socket(Bad idea)
 	~Sender();
 
+	void setInformation(bool_atc_ptr _log_information)
+	{
+		this->_log_information = _log_information;
+	}
 
 // Connect with memory of sockets -- fid //
 	/////////////////////////////
@@ -280,6 +304,7 @@ private:
 	socket_ptr getSocketbyFid(int fid);
 
 	//external
+	bool_atc_ptr _log_information;
 	bufferIO_ptr<_Pocket> buffer_io;
 	void send_to();
 
@@ -400,6 +425,12 @@ void Sender<_Pocket>::send_to()
 		sock->write_some(asio::buffer(&pocket, sizeof(Pocket_Sys<_Pocket>)),ec);
 		if (ec)
 			continue;
+
+		if (_log_information->load())
+			std::cout << "[IO]: send to " << pocket.fid <<
+			"is_command: " << pocket.is_command << " " << typeid(pocket.pocket).name()
+			<< " { " << pocket.pocket << " } " << sizeof(_Pocket) << " bytes\n";
+
 #else
 		std::cout << pocket.pocket.n << " " << pocket.fid << " " << pocket._pocket_id << std::endl;
 #endif
