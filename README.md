@@ -18,6 +18,8 @@ struct Pocket
 {
   std::string commad, msg;
 }
+// use for log information, define if you need it
+std::ostream& operator<<(std::ostream& os, const MainPocket& pocket);
 
 Server <Pocket> sv("192.128.234.122",1228);
 sv.start();
