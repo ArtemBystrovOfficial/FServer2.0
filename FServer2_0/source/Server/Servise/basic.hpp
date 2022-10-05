@@ -74,6 +74,7 @@ public:
 		, buffer_io(ptr)
 	{
 		is_exit.store(false);
+		sender.setInformation(_log_information);
 		sender.start(buffer_io,wait_sender);
 	}
 
@@ -193,7 +194,10 @@ public:
 		return list;
 	}
 
-
+	void SwitchLog()
+	{
+		_log_information->store(!_log_information->load());
+	}
 
 private:
 
@@ -236,6 +240,7 @@ private:
 	std::mutex _block_ban_list;
 
 	bool_atc_ptr new_diconnect{ new std::atomic <bool>{ false } };
+	bool_atc_ptr _log_information{ new std::atomic <bool>{ false }  };
 
 };
 
@@ -309,6 +314,9 @@ void BasicFServer<_Pocket>::_listenner()
 
 			_block_ban_list.unlock();
 
+			if (_log_information->load())
+				std::cout << "[BASIC] banned fid " << current_free_fid << " skipped\n";
+
 			++current_free_fid;
 
 			continue;
@@ -329,14 +337,20 @@ void BasicFServer<_Pocket>::_listenner()
 
 		sender._addNewFidSocket(current_free_fid, sock);
 
-		//users.emplace(check_connect_closed, User_Session<_Pocket>(check_connect_closed, sock, buffer_io));
+		auto item = users.find(current_free_fid);
+
+		item->second.reciver.setInformation(_log_information);
 
 		_block_map_users.unlock();
+
 
 //////////////////////////
 // PLEASE DON'T EDIT
 //////////////////////////
-			
+		
+		if (_log_information->load())
+			std::cout << "[BASIC] fid " << current_free_fid << " connected\n";
+
 		++current_free_fid;
 	} while (is_working.load());
 
@@ -373,6 +387,9 @@ inline int BasicFServer<_Pocket>::Disconnect(int fid)
 
 	_block_map_users.unlock();
 
+	if (_log_information->load())
+		std::cout << "[BASIC] fid " << fid << " disconected\n";
+
 	return 0;
 }
 
@@ -396,6 +413,7 @@ inline std::vector<int> BasicFServer<_Pocket>::GetOnlineFidList()
 	}
 
 	_block_map_users.unlock();
+
 
 	return list;
 }
