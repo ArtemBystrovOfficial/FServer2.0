@@ -494,6 +494,8 @@ inline void BasicFServer<_Pocket>::_Off()
 {
 	is_working.store(false);
 
+	std::this_thread::sleep_for(10ms);
+
 	acceptor->close();
 	if(_listen_run.joinable())
 		_listen_run.join();
