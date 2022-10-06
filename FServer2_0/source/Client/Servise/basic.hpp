@@ -29,8 +29,10 @@ public:
 		, buffer_io(ptr)
 		, socket_closed(new std::atomic<bool>)
 		, empty(new std::atomic<bool>)
+		, non_information(new std::atomic<bool>(false))
 	{
 		is_exit.store(false);
+		sender.setInformation(non_information);
 		sender.start(buffer_io, wait_sender);
 		socket_closed->store(true);
 	}
@@ -88,6 +90,7 @@ private:
 
 	//non anviliable there
 	bool_atc_ptr empty;
+	bool_atc_ptr non_information;
 
 	std::atomic <int> _current_connection{0}; // fid
 	std::atomic <bool> is_banned{false};
@@ -129,6 +132,8 @@ inline bool BasicFClient<_Pocket>::connect()
 			_current_connection.load(),
 			empty		
 			);
+
+		reciver->setInformation(non_information);
 
 		is_banned.store( false );
 
