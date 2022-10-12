@@ -16,7 +16,8 @@ add_executable(FClient FClient.cpp)
 target_compile_features(FServer PRIVATE cxx_std_17)
 target_compile_features(FClient PRIVATE cxx_std_17)
 
-
+#if enable testing library on your device -> true
+set(ON_TESTS false)
 
 add_subdirectory(FServer2_0)
 

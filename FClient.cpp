@@ -8,7 +8,7 @@ using fec = ReciverSingle<Pocket>::f_error;
 
 int main(int argc ,char ** argv)
 {
-	
+	 
 	FClient <Pocket> cl("188.168.25.28", 21111);
 
 	cl.connect();
