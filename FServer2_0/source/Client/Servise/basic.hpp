@@ -30,6 +30,7 @@ public:
 		, socket_closed(new std::atomic<bool>)
 		, empty(new std::atomic<bool>)
 		, non_information(new std::atomic<bool>(false))
+		, is_connected(false)
 	{
 		is_exit.store(false);
 		sender.setInformation(non_information);
