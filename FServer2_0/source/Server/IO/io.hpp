@@ -90,6 +90,7 @@ private:
 template<class _Pocket>
 Reciver<_Pocket>::Reciver(socket_ptr ptr, bool_atc_ptr socket_close_status, bufferIO_ptr<_Pocket> buffer_io,int fid, bool_atc_ptr new_diconnect) : sock(ptr),
 																			  _is_socket_closed(socket_close_status),
+																			  is_ext(false),
 																			  _current_pocket_id(1),
 																			  buffer_io(buffer_io),
 																			  fid(fid),
@@ -376,7 +377,7 @@ socket_ptr Sender<_Pocket>::getSocketbyFid(int fid)
 }
 
 template<class _Pocket>
-Sender<_Pocket>::Sender()
+Sender<_Pocket>::Sender(): is_ext(false)
 {}
 
 template<class _Pocket>

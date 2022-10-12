@@ -75,6 +75,7 @@ public:
 	{
 		acceptor = std::make_shared<ip::tcp::acceptor>(*io_s, ep);
 		is_exit.store(false);
+		is_working.store(false);
 		sender.setInformation(_log_information);
 		sender.start(buffer_io,wait_sender);
 	}
