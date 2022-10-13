@@ -4,14 +4,13 @@
 
 cmake_minimum_required(VERSION 3.2)
 
+if(ON_TESTS)
+
 # Build googletest
 add_subdirectory(
     "${CMAKE_CURRENT_SOURCE_DIR}/libs/googletest" 
     "lib/sgoogletest"
 )
-
-
-if(ON_TESTS)
 
     # Test target
     add_executable (tests_client "testing/tests_client.cpp")
